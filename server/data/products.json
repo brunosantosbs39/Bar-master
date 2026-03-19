@@ -1,0 +1,167 @@
+[
+  {
+    "name": "Cerveja Lata 350ml",
+    "category": "cervejas",
+    "price": 8,
+    "available": true,
+    "print_dept": "bar",
+    "code": "CL350",
+    "id": "1773952140533-dzoi7v5",
+    "created_at": "2026-03-19T20:29:00.533Z",
+    "updated_at": "2026-03-19T20:29:00.533Z"
+  },
+  {
+    "name": "Cerveja Long Neck",
+    "category": "cervejas",
+    "price": 12,
+    "available": true,
+    "print_dept": "bar",
+    "code": "CLN",
+    "id": "1773952140533-rl10c49",
+    "created_at": "2026-03-19T20:29:00.533Z",
+    "updated_at": "2026-03-19T20:29:00.533Z"
+  },
+  {
+    "name": "Cerveja Garrafa 600ml",
+    "category": "cervejas",
+    "price": 18,
+    "available": true,
+    "print_dept": "bar",
+    "code": "CG600",
+    "id": "1773952140534-0biqrop",
+    "created_at": "2026-03-19T20:29:00.534Z",
+    "updated_at": "2026-03-19T20:29:00.534Z"
+  },
+  {
+    "name": "Whisky Dose",
+    "category": "destilados",
+    "price": 22,
+    "available": true,
+    "print_dept": "bar",
+    "code": "WD",
+    "id": "1773952140534-pmgf9nm",
+    "created_at": "2026-03-19T20:29:00.534Z",
+    "updated_at": "2026-03-19T20:29:00.534Z"
+  },
+  {
+    "name": "Caipirinha",
+    "category": "drinks",
+    "price": 20,
+    "available": true,
+    "print_dept": "bar",
+    "code": "CAI",
+    "id": "1773952140535-pxatuay",
+    "created_at": "2026-03-19T20:29:00.535Z",
+    "updated_at": "2026-03-19T20:29:00.535Z"
+  },
+  {
+    "name": "Água Mineral",
+    "category": "nao_alcoolicos",
+    "price": 5,
+    "available": true,
+    "print_dept": "bar",
+    "code": "AGM",
+    "id": "1773952140536-lfv5rwi",
+    "created_at": "2026-03-19T20:29:00.536Z",
+    "updated_at": "2026-03-19T20:29:00.536Z"
+  },
+  {
+    "name": "Refrigerante Lata",
+    "category": "nao_alcoolicos",
+    "price": 7,
+    "available": true,
+    "print_dept": "bar",
+    "code": "REF",
+    "id": "1773952140536-dyseldh",
+    "created_at": "2026-03-19T20:29:00.536Z",
+    "updated_at": "2026-03-19T20:29:00.536Z"
+  },
+  {
+    "name": "Suco Natural",
+    "category": "nao_alcoolicos",
+    "price": 12,
+    "available": true,
+    "print_dept": "bar",
+    "code": "SUC",
+    "id": "1773952140537-plpac79",
+    "created_at": "2026-03-19T20:29:00.537Z",
+    "updated_at": "2026-03-19T20:29:00.537Z"
+  },
+  {
+    "name": "Porção de Batata Frita",
+    "category": "porcoes",
+    "price": 30,
+    "available": true,
+    "print_dept": "cozinha",
+    "code": "PBF",
+    "id": "1773952140537-sjpd8yc",
+    "created_at": "2026-03-19T20:29:00.537Z",
+    "updated_at": "2026-03-19T20:29:00.537Z"
+  },
+  {
+    "name": "Porção de Frango",
+    "category": "porcoes",
+    "price": 45,
+    "available": true,
+    "print_dept": "cozinha",
+    "code": "PFG",
+    "id": "1773952140538-3hpx1q3",
+    "created_at": "2026-03-19T20:29:00.538Z",
+    "updated_at": "2026-03-19T20:29:00.538Z"
+  },
+  {
+    "name": "Bolinho de Bacalhau 6un",
+    "category": "petiscos",
+    "price": 28,
+    "available": true,
+    "print_dept": "cozinha",
+    "code": "BB6",
+    "id": "1773952140538-c0ei5sh",
+    "created_at": "2026-03-19T20:29:00.538Z",
+    "updated_at": "2026-03-19T20:29:00.538Z"
+  },
+  {
+    "name": "Tábua de Frios",
+    "category": "petiscos",
+    "price": 55,
+    "available": true,
+    "print_dept": "cozinha",
+    "code": "TF",
+    "id": "1773952140539-97hl5mf",
+    "created_at": "2026-03-19T20:29:00.539Z",
+    "updated_at": "2026-03-19T20:29:00.539Z"
+  },
+  {
+    "name": "Frango Grelhado",
+    "category": "pratos",
+    "price": 38,
+    "available": true,
+    "print_dept": "cozinha",
+    "code": "FGR",
+    "id": "1773952140539-c46hmmy",
+    "created_at": "2026-03-19T20:29:00.539Z",
+    "updated_at": "2026-03-19T20:29:00.539Z"
+  },
+  {
+    "name": "Picanha na Chapa",
+    "category": "pratos",
+    "price": 65,
+    "available": true,
+    "print_dept": "cozinha",
+    "code": "PIC",
+    "id": "1773952140539-fkrcruk",
+    "created_at": "2026-03-19T20:29:00.539Z",
+    "updated_at": "2026-03-19T20:29:00.539Z"
+  },
+  {
+    "name": "Pudim",
+    "category": "sobremesas",
+    "price": 15,
+    "available": true,
+    "print_dept": "cozinha",
+    "code": "PUD",
+    "id": "1773952140541-eickenu",
+    "created_at": "2026-03-19T20:29:00.541Z",
+    "updated_at": "2026-03-19T20:29:00.541Z"
+  }
+]

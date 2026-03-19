@@ -1,0 +1,13 @@
+[
+  {
+    "service_fee_percent": 10,
+    "happy_hour_enabled": false,
+    "happy_hour_discount": 20,
+    "happy_hour_start": "17:00",
+    "happy_hour_end": "19:00",
+    "cashier_blocks_orders": false,
+    "id": "1773952140550-82jq23v",
+    "created_at": "2026-03-19T20:29:00.550Z",
+    "updated_at": "2026-03-19T20:29:00.550Z"
+  }
+]

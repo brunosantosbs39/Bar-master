@@ -1,0 +1,152 @@
+[
+  {
+    "product_id": "1773952140533-dzoi7v5",
+    "product_name": "Cerveja Lata 350ml",
+    "quantity": 50,
+    "unit": "un",
+    "min_quantity": 5,
+    "id": "1773952140543-xhjy8gn",
+    "created_at": "2026-03-19T20:29:00.543Z",
+    "updated_at": "2026-03-19T20:29:00.543Z"
+  },
+  {
+    "product_id": "1773952140533-rl10c49",
+    "product_name": "Cerveja Long Neck",
+    "quantity": 50,
+    "unit": "un",
+    "min_quantity": 5,
+    "id": "1773952140543-mwsmmbt",
+    "created_at": "2026-03-19T20:29:00.543Z",
+    "updated_at": "2026-03-19T20:29:00.543Z"
+  },
+  {
+    "product_id": "1773952140534-0biqrop",
+    "product_name": "Cerveja Garrafa 600ml",
+    "quantity": 50,
+    "unit": "un",
+    "min_quantity": 5,
+    "id": "1773952140544-dsel1nl",
+    "created_at": "2026-03-19T20:29:00.544Z",
+    "updated_at": "2026-03-19T20:29:00.544Z"
+  },
+  {
+    "product_id": "1773952140534-pmgf9nm",
+    "product_name": "Whisky Dose",
+    "quantity": 50,
+    "unit": "un",
+    "min_quantity": 5,
+    "id": "1773952140544-4a8i0wo",
+    "created_at": "2026-03-19T20:29:00.544Z",
+    "updated_at": "2026-03-19T20:29:00.544Z"
+  },
+  {
+    "product_id": "1773952140535-pxatuay",
+    "product_name": "Caipirinha",
+    "quantity": 50,
+    "unit": "un",
+    "min_quantity": 5,
+    "id": "1773952140545-90b2wap",
+    "created_at": "2026-03-19T20:29:00.545Z",
+    "updated_at": "2026-03-19T20:29:00.545Z"
+  },
+  {
+    "product_id": "1773952140536-lfv5rwi",
+    "product_name": "Água Mineral",
+    "quantity": 50,
+    "unit": "un",
+    "min_quantity": 5,
+    "id": "1773952140545-za6ke1t",
+    "created_at": "2026-03-19T20:29:00.545Z",
+    "updated_at": "2026-03-19T20:29:00.545Z"
+  },
+  {
+    "product_id": "1773952140536-dyseldh",
+    "product_name": "Refrigerante Lata",
+    "quantity": 50,
+    "unit": "un",
+    "min_quantity": 5,
+    "id": "1773952140546-n78opwd",
+    "created_at": "2026-03-19T20:29:00.546Z",
+    "updated_at": "2026-03-19T20:29:00.546Z"
+  },
+  {
+    "product_id": "1773952140537-plpac79",
+    "product_name": "Suco Natural",
+    "quantity": 50,
+    "unit": "un",
+    "min_quantity": 5,
+    "id": "1773952140546-r16y9mr",
+    "created_at": "2026-03-19T20:29:00.546Z",
+    "updated_at": "2026-03-19T20:29:00.546Z"
+  },
+  {
+    "product_id": "1773952140537-sjpd8yc",
+    "product_name": "Porção de Batata Frita",
+    "quantity": 50,
+    "unit": "un",
+    "min_quantity": 5,
+    "id": "1773952140547-116ifcb",
+    "created_at": "2026-03-19T20:29:00.546Z",
+    "updated_at": "2026-03-19T20:29:00.546Z"
+  },
+  {
+    "product_id": "1773952140538-3hpx1q3",
+    "product_name": "Porção de Frango",
+    "quantity": 50,
+    "unit": "un",
+    "min_quantity": 5,
+    "id": "1773952140547-0yu8oeh",
+    "created_at": "2026-03-19T20:29:00.547Z",
+    "updated_at": "2026-03-19T20:29:00.547Z"
+  },
+  {
+    "product_id": "1773952140538-c0ei5sh",
+    "product_name": "Bolinho de Bacalhau 6un",
+    "quantity": 50,
+    "unit": "un",
+    "min_quantity": 5,
+    "id": "1773952140547-bz0pas8",
+    "created_at": "2026-03-19T20:29:00.547Z",
+    "updated_at": "2026-03-19T20:29:00.547Z"
+  },
+  {
+    "product_id": "1773952140539-97hl5mf",
+    "product_name": "Tábua de Frios",
+    "quantity": 50,
+    "unit": "un",
+    "min_quantity": 5,
+    "id": "1773952140548-j1t91d1",
+    "created_at": "2026-03-19T20:29:00.548Z",
+    "updated_at": "2026-03-19T20:29:00.548Z"
+  },
+  {
+    "product_id": "1773952140539-c46hmmy",
+    "product_name": "Frango Grelhado",
+    "quantity": 50,
+    "unit": "un",
+    "min_quantity": 5,
+    "id": "1773952140548-w9x5nmy",
+    "created_at": "2026-03-19T20:29:00.548Z",
+    "updated_at": "2026-03-19T20:29:00.548Z"
+  },
+  {
+    "product_id": "1773952140539-fkrcruk",
+    "product_name": "Picanha na Chapa",
+    "quantity": 50,
+    "unit": "un",
+    "min_quantity": 5,
+    "id": "1773952140549-eluo98x",
+    "created_at": "2026-03-19T20:29:00.549Z",
+    "updated_at": "2026-03-19T20:29:00.549Z"
+  },
+  {
+    "product_id": "1773952140541-eickenu",
+    "product_name": "Pudim",
+    "quantity": 50,
+    "unit": "un",
+    "min_quantity": 5,
+    "id": "1773952140549-u6l0k1j",
+    "created_at": "2026-03-19T20:29:00.549Z",
+    "updated_at": "2026-03-19T20:29:00.549Z"
+  }
+]

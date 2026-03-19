@@ -1,0 +1,36 @@
+[
+  {
+    "status": "fechado",
+    "turno": "noite",
+    "operador": "Admin",
+    "saldo_inicial": 150,
+    "aberto_em": "2026-03-18T20:29:00.550Z",
+    "fechado_em": "2026-03-19T19:29:00.550Z",
+    "movimentacoes": [
+      {
+        "id": "1",
+        "tipo": "sangria",
+        "valor": 50,
+        "motivo": "Troco",
+        "hora": "2026-03-18T20:29:00.550Z",
+        "operador": "Admin"
+      }
+    ],
+    "linked_order_ids": [],
+    "resumo_pagamentos": {
+      "dinheiro": 320,
+      "pix": 180,
+      "cartao_credito": 95,
+      "cartao_debito": 60,
+      "misto": 0
+    },
+    "total_comandas": 8,
+    "total_itens": 34,
+    "saldo_esperado": 420,
+    "saldo_real": 415,
+    "diferenca": -5,
+    "id": "1773952140550-5k2nkkk",
+    "created_at": "2026-03-19T20:29:00.550Z",
+    "updated_at": "2026-03-19T20:29:00.550Z"
+  }
+]

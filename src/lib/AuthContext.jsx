@@ -1,6 +1,4 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { seedIfEmpty } from './localDB-seed';
-import { localDB } from './localDB';
 
 const AuthContext = createContext();
 const OPERATOR_KEY = 'bm_operator';
@@ -10,8 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    seedIfEmpty();
-    localDB.purgeOldOrders();
+    // Seed é feito automaticamente pelo servidor ao iniciar
     setReady(true);
   }, []);
 

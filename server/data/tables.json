@@ -1,0 +1,102 @@
+[
+  {
+    "number": 1,
+    "type": "mesa",
+    "capacity": 4,
+    "status": "livre",
+    "active": true,
+    "id": "1773952140528-91wrrk7",
+    "created_at": "2026-03-19T20:29:00.527Z",
+    "updated_at": "2026-03-19T20:29:00.527Z"
+  },
+  {
+    "number": 2,
+    "type": "mesa",
+    "capacity": 4,
+    "status": "livre",
+    "active": true,
+    "id": "1773952140528-xwoxlgi",
+    "created_at": "2026-03-19T20:29:00.528Z",
+    "updated_at": "2026-03-19T20:29:00.528Z"
+  },
+  {
+    "number": 3,
+    "type": "mesa",
+    "capacity": 6,
+    "status": "livre",
+    "active": true,
+    "id": "1773952140529-fsd356q",
+    "created_at": "2026-03-19T20:29:00.529Z",
+    "updated_at": "2026-03-19T20:29:00.529Z"
+  },
+  {
+    "number": 4,
+    "type": "mesa",
+    "capacity": 6,
+    "status": "livre",
+    "active": true,
+    "id": "1773952140529-tpxa7bb",
+    "created_at": "2026-03-19T20:29:00.529Z",
+    "updated_at": "2026-03-19T20:29:00.529Z"
+  },
+  {
+    "number": 5,
+    "type": "mesa",
+    "capacity": 2,
+    "status": "livre",
+    "active": true,
+    "id": "1773952140530-g3guzln",
+    "created_at": "2026-03-19T20:29:00.530Z",
+    "updated_at": "2026-03-19T20:29:00.530Z"
+  },
+  {
+    "number": 6,
+    "type": "mesa",
+    "capacity": 8,
+    "status": "livre",
+    "active": true,
+    "id": "1773952140530-zuzzriy",
+    "created_at": "2026-03-19T20:29:00.530Z",
+    "updated_at": "2026-03-19T20:29:00.530Z"
+  },
+  {
+    "number": 7,
+    "type": "mesa",
+    "capacity": 4,
+    "status": "livre",
+    "active": true,
+    "id": "1773952140531-bxkralj",
+    "created_at": "2026-03-19T20:29:00.531Z",
+    "updated_at": "2026-03-19T20:29:00.531Z"
+  },
+  {
+    "number": 8,
+    "type": "mesa",
+    "capacity": 4,
+    "status": "livre",
+    "active": true,
+    "id": "1773952140531-3qp9mwb",
+    "created_at": "2026-03-19T20:29:00.531Z",
+    "updated_at": "2026-03-19T20:29:00.531Z"
+  },
+  {
+    "number": 1,
+    "type": "balcao",
+    "capacity": 6,
+    "status": "livre",
+    "active": true,
+    "id": "1773952140532-wb51j1e",
+    "created_at": "2026-03-19T20:29:00.532Z",
+    "updated_at": "2026-03-19T20:29:00.532Z"
+  },
+  {
+    "number": 1,
+    "type": "delivery",
+    "capacity": 1,
+    "status": "livre",
+    "active": true,
+    "id": "1773952140532-cfrz24h",
+    "created_at": "2026-03-19T20:29:00.532Z",
+    "updated_at": "2026-03-19T20:29:00.532Z"
+  }
+]

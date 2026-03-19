@@ -108,8 +108,8 @@ export default function Configuracoes() {
     }));
   };
 
-  const handleExport = () => {
-    const json = exportData();
+  const handleExport = async () => {
+    const json = await exportData();
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -123,8 +123,8 @@ export default function Configuracoes() {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
-      const result = importData(ev.target.result);
+    reader.onload = async (ev) => {
+      const result = await importData(ev.target.result);
       if (result.success) {
         qc.invalidateQueries();
         setImportError('');
@@ -136,10 +136,9 @@ export default function Configuracoes() {
     reader.readAsText(file);
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (!confirm('Tem certeza? Isso vai apagar TODOS os dados e restaurar o padrão.')) return;
-    resetData();
-    qc.invalidateQueries();
+    await resetData();
   };
 
   return (

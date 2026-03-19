@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useState } from 'react';
+import { useCustomCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from '@/hooks/useProducts';
+import { useQueryClient } from '@tanstack/react-query';
+import { localDB } from '@/lib/localDB';
 import { Plus, Pencil, Trash2, ToggleRight, ToggleLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,21 +25,16 @@ const BUILT_IN_CATEGORIES = [
 const emptyForm = { value: '', label: '', emoji: '🍽️', print_dept: 'bar', active: true, order: 0 };
 
 export default function CategoriesManager({ onCategoriesChange }) {
-  const [custom, setCustom] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: custom = [], isLoading: loading } = useCustomCategories();
+  const createCategory = useCreateCategory();
+  const updateCategory = useUpdateCategory();
+  const deleteCategory = useDeleteCategory();
+  const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
 
-  useEffect(() => { load(); }, []);
-
-  const load = async () => {
-    setLoading(true);
-    const data = await base44.entities.CustomCategory.list();
-    setCustom(data.sort((a, b) => (a.order || 0) - (b.order || 0)));
-    setLoading(false);
-    onCategoriesChange && onCategoriesChange(data);
-  };
+  const sorted = [...custom].sort((a, b) => (a.order || 0) - (b.order || 0));
 
   const openCreate = () => {
     setEditing(null);
@@ -65,22 +62,22 @@ export default function CategoriesManager({ onCategoriesChange }) {
       data.value = generateSlug(data.label);
     }
     if (editing) {
-      await base44.entities.CustomCategory.update(editing.id, data);
+      await updateCategory.mutateAsync({ id: editing.id, data });
     } else {
-      await base44.entities.CustomCategory.create(data);
+      await createCategory.mutateAsync(data);
     }
     setShowForm(false);
-    load();
+    onCategoriesChange && onCategoriesChange();
   };
 
-  const deleteCategory = async (id) => {
-    await base44.entities.CustomCategory.delete(id);
-    load();
+  const handleDelete = async (id) => {
+    await deleteCategory.mutateAsync(id);
+    onCategoriesChange && onCategoriesChange();
   };
 
   const toggleActive = async (c) => {
-    await base44.entities.CustomCategory.update(c.id, { active: !c.active });
-    load();
+    await updateCategory.mutateAsync({ id: c.id, data: { active: !c.active } });
+    onCategoriesChange && onCategoriesChange();
   };
 
   if (loading) return <div className="flex justify-center py-16"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
@@ -107,7 +104,7 @@ export default function CategoriesManager({ onCategoriesChange }) {
         </Button>
       </div>
 
-      {custom.length === 0 ? (
+      {sorted.length === 0 ? (
         <div className="text-center py-10 border border-dashed border-border rounded-xl">
           <div className="text-3xl mb-2">🏷️</div>
           <p className="text-muted-foreground text-sm mb-3">Nenhuma categoria personalizada</p>
@@ -115,7 +112,7 @@ export default function CategoriesManager({ onCategoriesChange }) {
         </div>
       ) : (
         <div className="space-y-2">
-          {custom.map(c => (
+          {sorted.map(c => (
             <div key={c.id} className={`flex items-center gap-3 px-4 py-3 rounded-xl border bg-card transition-all ${c.active ? 'border-border' : 'border-border opacity-50'}`}>
               <span className="text-xl">{c.emoji || '🏷️'}</span>
               <div className="flex-1 min-w-0">
@@ -131,7 +128,7 @@ export default function CategoriesManager({ onCategoriesChange }) {
                 <button onClick={() => openEdit(c)} className="text-muted-foreground hover:text-foreground transition-colors">
                   <Pencil className="w-4 h-4" />
                 </button>
-                <button onClick={() => deleteCategory(c.id)} className="text-muted-foreground hover:text-destructive transition-colors">
+                <button onClick={() => handleDelete(c.id)} className="text-muted-foreground hover:text-destructive transition-colors">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { localDB } from '@/lib/localDB';
 import { QRCodeSVG } from 'qrcode.react';
 import { Download, QrCode, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,7 @@ export default function QRCodes() {
   const appUrl = window.location.origin;
 
   useEffect(() => {
-    base44.entities.Table.filter({ active: true }).then(data => {
+    localDB.entities.Table.filter({ active: true }).then(data => {
       setTables(data.filter(t => t.type !== 'delivery'));
       setLoading(false);
     });

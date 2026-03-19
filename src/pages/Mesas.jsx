@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useState } from 'react';
 import { Plus, Users, Clock, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
 import MesaDetalhe from '@/components/MesaDetalhe';
+import { useTables, useCreateTable } from '@/hooks/useTables';
+import { useOrders } from '@/hooks/useOrders';
 
 const statusConfig = {
   livre: { label: 'Livre', color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
@@ -23,31 +24,18 @@ const typeConfig = {
 };
 
 export default function Mesas() {
-  const [tables, setTables] = useState([]);
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: tables = [], isLoading: loadingTables } = useTables();
+  const { data: orders = [], isLoading: loadingOrders } = useOrders({ status: 'aberta' });
+  const createTableMutation = useCreateTable();
+  const loading = loadingTables || loadingOrders;
+
   const [showNew, setShowNew] = useState(false);
   const [newTable, setNewTable] = useState({ number: '', type: 'mesa', capacity: '' });
   const [selectedTable, setSelectedTable] = useState(null);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    setLoading(true);
-    const [t, o] = await Promise.all([
-      base44.entities.Table.list(),
-      base44.entities.Order.filter({ status: 'aberta' })
-    ]);
-    setTables(t);
-    setOrders(o);
-    setLoading(false);
-  };
-
   const createTable = async () => {
     if (!newTable.number || !newTable.type) return;
-    await base44.entities.Table.create({
+    await createTableMutation.mutateAsync({
       number: Number(newTable.number),
       type: newTable.type,
       capacity: Number(newTable.capacity) || 4,
@@ -56,7 +44,6 @@ export default function Mesas() {
     });
     setShowNew(false);
     setNewTable({ number: '', type: 'mesa', capacity: '' });
-    loadData();
   };
 
   const openOrder = (table) => {
@@ -84,7 +71,7 @@ export default function Mesas() {
       <MesaDetalhe
         table={selectedTable}
         existingOrder={getTableOrder(selectedTable.id) || null}
-        onBack={() => { setSelectedTable(null); loadData(); }}
+        onBack={() => setSelectedTable(null)}
       />
     );
   }

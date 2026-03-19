@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { localDB } from '@/lib/localDB';
 import { useWaiterSession } from '@/lib/WaiterSessionContext';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Users, Clock, ShoppingBag, LogOut, ArrowLeft } from 'lucide-react';
@@ -38,8 +38,8 @@ export default function GarcomApp() {
   const loadData = async () => {
     setLoading(true);
     const [t, o] = await Promise.all([
-      base44.entities.Table.filter({ active: true }),
-      base44.entities.Order.filter({ status: 'aberta' })
+      localDB.entities.Table.filter({ active: true }),
+      localDB.entities.Order.filter({ status: 'aberta' })
     ]);
     setTables(t);
     setOrders(o);

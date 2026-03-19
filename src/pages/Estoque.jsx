@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useState } from 'react';
+import { localDB } from '@/lib/localDB';
+import { useStock, useCreateStock, useUpdateStock } from '@/hooks/useStock';
+import { useProducts } from '@/hooks/useProducts';
 import { Package, Plus, AlertTriangle, TrendingDown, TrendingUp, Edit2, Trash2, History, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useQueryClient } from '@tanstack/react-query';
 
 const UNITS = ['un', 'kg', 'g', 'L', 'ml', 'cx', 'pct'];
 
@@ -17,31 +19,19 @@ const emptyForm = {
 };
 
 export default function Estoque() {
-  const [items, setItems] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [movements, setMovements] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [form, setForm] = useState(emptyForm);
-  const [showMovements, setShowMovements] = useState(null); // stock item id
   const [adjustItem, setAdjustItem] = useState(null);
   const [adjustQty, setAdjustQty] = useState('');
   const [adjustNotes, setAdjustNotes] = useState('');
-  const [tab, setTab] = useState('estoque'); // 'estoque' | 'alertas'
+  const [tab, setTab] = useState('estoque');
 
-  useEffect(() => { loadAll(); }, []);
-
-  const loadAll = async () => {
-    setLoading(true);
-    const [s, p] = await Promise.all([
-      base44.entities.StockItem.list('-updated_date'),
-      base44.entities.Product.list(),
-    ]);
-    setItems(s);
-    setProducts(p);
-    setLoading(false);
-  };
+  const { data: items = [], isLoading: loading } = useStock();
+  const { data: products = [] } = useProducts();
+  const createStock = useCreateStock();
+  const updateStock = useUpdateStock();
 
   const openAdd = () => {
     setForm(emptyForm);
@@ -63,17 +53,16 @@ export default function Estoque() {
   const saveItem = async () => {
     if (!form.name.trim()) return;
     if (editingItem) {
-      await base44.entities.StockItem.update(editingItem.id, form);
+      await updateStock.mutateAsync({ id: editingItem.id, data: form });
     } else {
-      await base44.entities.StockItem.create(form);
+      await createStock.mutateAsync(form);
     }
     setShowForm(false);
-    loadAll();
   };
 
   const deleteItem = async (id) => {
-    await base44.entities.StockItem.delete(id);
-    loadAll();
+    await localDB.entities.Stock.delete(id);
+    qc.invalidateQueries({ queryKey: ['stock'] });
   };
 
   const openAdjust = (item) => {
@@ -87,32 +76,13 @@ export default function Estoque() {
     const qty = parseFloat(adjustQty);
     const before = adjustItem.quantity || 0;
     const after = type === 'entrada' ? before + qty : Math.max(0, before - qty);
-
-    await Promise.all([
-      base44.entities.StockItem.update(adjustItem.id, { quantity: after }),
-      base44.entities.StockMovement.create({
-        stock_item_id: adjustItem.id,
-        stock_item_name: adjustItem.name,
-        type: type === 'entrada' ? 'entrada' : 'ajuste',
-        quantity: qty,
-        quantity_before: before,
-        quantity_after: after,
-        notes: adjustNotes || `Ajuste manual - ${type}`,
-      }),
-    ]);
+    await localDB.entities.Stock.update(adjustItem.id, { quantity: after });
+    qc.invalidateQueries({ queryKey: ['stock'] });
     setAdjustItem(null);
-    loadAll();
-  };
-
-  const loadMovements = async (stockId) => {
-    const mvs = await base44.entities.StockMovement.filter({ stock_item_id: stockId }, '-created_date', 30);
-    setMovements(mvs);
-    setShowMovements(stockId);
   };
 
   const alerts = items.filter(i => i.active && (i.quantity || 0) <= (i.min_quantity || 0) && i.min_quantity > 0);
   const activeItems = items.filter(i => i.active);
-
   const displayItems = tab === 'alertas' ? alerts : activeItems;
 
   return (
@@ -224,9 +194,6 @@ export default function Estoque() {
                       <button onClick={() => openAdjust(item)} title="Ajustar" className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary transition-colors">
                         <TrendingUp className="w-4 h-4" />
                       </button>
-                      <button onClick={() => loadMovements(item.id)} title="Histórico" className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
-                        <History className="w-4 h-4" />
-                      </button>
                       <button onClick={() => openEdit(item)} title="Editar" className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
                         <Edit2 className="w-4 h-4" />
                       </button>
@@ -331,36 +298,6 @@ export default function Estoque() {
               </div>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Movements Dialog */}
-      <Dialog open={!!showMovements} onOpenChange={() => setShowMovements(null)}>
-        <DialogContent className="bg-card border-border max-w-sm max-h-[80vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><History className="w-4 h-4 text-primary" /> Histórico</DialogTitle>
-          </DialogHeader>
-          <div className="flex-1 overflow-y-auto space-y-2 py-2">
-            {movements.length === 0 ? (
-              <p className="text-center text-muted-foreground text-sm py-6">Nenhuma movimentação</p>
-            ) : movements.map((m, i) => (
-              <div key={m.id || i} className="flex items-start gap-3 p-3 rounded-xl bg-secondary">
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
-                  m.type === 'entrada' ? 'bg-emerald-500/20 text-emerald-400' :
-                  m.type === 'saida' ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'
-                }`}>
-                  {m.type === 'entrada' ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-muted-foreground">{new Date(m.created_date).toLocaleString('pt-BR')}</p>
-                  <p className="text-sm text-foreground font-medium">
-                    {m.type === 'entrada' ? '+' : '-'}{m.quantity} → {m.quantity_after}
-                  </p>
-                  {m.notes && <p className="text-xs text-muted-foreground truncate">{m.notes}</p>}
-                </div>
-              </div>
-            ))}
-          </div>
         </DialogContent>
       </Dialog>
     </div>

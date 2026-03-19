@@ -1,4 +1,4 @@
-import { base44 } from '@/api/base44Client';
+import { HappyHourDB } from '@/components/HappyHourSettings';
 
 let cachedRules = null;
 let cacheTime = 0;
@@ -8,7 +8,7 @@ export async function getActiveHappyHour() {
   if (cachedRules && Date.now() - cacheTime < 60000) {
     return findActive(cachedRules);
   }
-  cachedRules = await base44.entities.HappyHour.filter({ active: true });
+  cachedRules = await HappyHourDB.filter({ active: true });
   cacheTime = Date.now();
   return findActive(cachedRules);
 }

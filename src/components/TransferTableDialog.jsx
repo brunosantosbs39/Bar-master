@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { localDB } from '@/lib/localDB';
+import { useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ArrowRightLeft } from 'lucide-react';
@@ -8,6 +9,7 @@ export default function TransferTableDialog({ open, onClose, order, onTransferre
   const [tables, setTables] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null);
   const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (open) {
@@ -17,7 +19,7 @@ export default function TransferTableDialog({ open, onClose, order, onTransferre
   }, [open]);
 
   const loadFreeTables = async () => {
-    const all = await base44.entities.Table.filter({ status: 'livre', active: true });
+    const all = await localDB.entities.Table.filter({ status: 'livre', active: true });
     // Exclude delivery type
     setTables(all.filter(t => t.type !== 'delivery'));
   };
@@ -27,7 +29,7 @@ export default function TransferTableDialog({ open, onClose, order, onTransferre
     setLoading(true);
 
     // Update the order with the new table info
-    await base44.entities.Order.update(order.id, {
+    await localDB.entities.Order.update(order.id, {
       table_id: selectedTable.id,
       table_number: selectedTable.number,
       table_type: selectedTable.type,
@@ -35,11 +37,14 @@ export default function TransferTableDialog({ open, onClose, order, onTransferre
 
     // Mark old table as free (if it was a table)
     if (order.table_id) {
-      await base44.entities.Table.update(order.table_id, { status: 'livre' });
+      await localDB.entities.Table.update(order.table_id, { status: 'livre' });
     }
 
     // Mark new table as occupied
-    await base44.entities.Table.update(selectedTable.id, { status: 'ocupada' });
+    await localDB.entities.Table.update(selectedTable.id, { status: 'ocupada' });
+
+    queryClient.invalidateQueries({ queryKey: ['tables'] });
+    queryClient.invalidateQueries({ queryKey: ['orders'] });
 
     setLoading(false);
     onTransferred(selectedTable);

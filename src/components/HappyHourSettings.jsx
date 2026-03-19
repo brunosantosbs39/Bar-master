@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { localDB } from '@/lib/localDB';
 import { Plus, Trash2, Power, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +33,44 @@ const EMPTY_FORM = {
   active: true,
 };
 
+// HappyHour stored in a separate localStorage key
+const HappyHourDB = {
+  list: () => {
+    try {
+      const raw = localStorage.getItem('bm_happyhour');
+      return Promise.resolve(raw ? JSON.parse(raw) : []);
+    } catch { return Promise.resolve([]); }
+  },
+  create: (data) => {
+    const items = JSON.parse(localStorage.getItem('bm_happyhour') || '[]');
+    const now = new Date().toISOString();
+    const item = { ...data, id: `${Date.now()}-${Math.random().toString(36).slice(2,9)}`, created_at: now };
+    items.push(item);
+    localStorage.setItem('bm_happyhour', JSON.stringify(items));
+    return Promise.resolve(item);
+  },
+  update: (id, data) => {
+    const items = JSON.parse(localStorage.getItem('bm_happyhour') || '[]');
+    const idx = items.findIndex(i => i.id === id);
+    if (idx !== -1) items[idx] = { ...items[idx], ...data };
+    localStorage.setItem('bm_happyhour', JSON.stringify(items));
+    return Promise.resolve(items[idx]);
+  },
+  delete: (id) => {
+    const items = JSON.parse(localStorage.getItem('bm_happyhour') || '[]').filter(i => i.id !== id);
+    localStorage.setItem('bm_happyhour', JSON.stringify(items));
+    return Promise.resolve();
+  },
+  filter: (filters) => {
+    return HappyHourDB.list().then(items => {
+      return items.filter(item => Object.entries(filters).every(([k, v]) => item[k] === v));
+    });
+  },
+};
+
+// Export for use in happyHourUtils
+export { HappyHourDB };
+
 export default function HappyHourSettings() {
   const [rules, setRules] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,13 +81,13 @@ export default function HappyHourSettings() {
 
   const loadRules = async () => {
     setLoading(true);
-    const data = await base44.entities.HappyHour.list();
+    const data = await HappyHourDB.list();
     setRules(data);
     setLoading(false);
   };
 
   const save = async () => {
-    await base44.entities.HappyHour.create({ ...form });
+    await HappyHourDB.create({ ...form });
     invalidateHappyHourCache();
     setShowForm(false);
     setForm(EMPTY_FORM);
@@ -57,13 +95,13 @@ export default function HappyHourSettings() {
   };
 
   const toggle = async (rule) => {
-    await base44.entities.HappyHour.update(rule.id, { active: !rule.active });
+    await HappyHourDB.update(rule.id, { active: !rule.active });
     invalidateHappyHourCache();
     loadRules();
   };
 
   const remove = async (id) => {
-    await base44.entities.HappyHour.delete(id);
+    await HappyHourDB.delete(id);
     invalidateHappyHourCache();
     loadRules();
   };

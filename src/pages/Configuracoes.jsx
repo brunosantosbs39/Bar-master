@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
-import { Trash2, Power, Settings, Table2, UserPlus, User, Phone, Key, Shield, ChevronDown, ChevronUp, Check } from 'lucide-react';
+import { useState } from 'react';
+import { localDB } from '@/lib/localDB';
+import { useTables, useCreateTable } from '@/hooks/useTables';
+import { useWaiters, useCreateWaiter, useUpdateWaiter, useDeleteWaiter } from '@/hooks/useWaiters';
+import { Trash2, Power, Settings, Table2, UserPlus, User, Phone, Key, Shield, Check } from 'lucide-react';
 import PrinterSettings from '@/components/PrinterSettings';
 import HappyHourSettings from '@/components/HappyHourSettings';
 import { Button } from '@/components/ui/button';
@@ -8,8 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
+import { useQueryClient } from '@tanstack/react-query';
+import { exportData, importData, resetData } from '@/lib/backup';
 
 const typeConfig = {
   mesa: { label: 'Mesa', icon: '🪑' },
@@ -36,57 +39,44 @@ const PERMISSION_LABELS = {
 };
 
 export default function Configuracoes() {
-  const [tables, setTables] = useState([]);
-  const [waiters, setWaiters] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
   const [showAddWaiter, setShowAddWaiter] = useState(false);
   const [editingWaiter, setEditingWaiter] = useState(null);
   const [waiterForm, setWaiterForm] = useState({ name: '', nickname: '', phone: '', password: '' });
   const [expandedWaiter, setExpandedWaiter] = useState(null);
+  const [importError, setImportError] = useState('');
 
-  useEffect(() => { loadAll(); }, []);
+  const { data: tables = [], isLoading: loadingTables } = useTables();
+  const { data: waiters = [], isLoading: loadingWaiters } = useWaiters();
+  const loading = loadingTables || loadingWaiters;
 
-  const loadAll = async () => {
-    setLoading(true);
-    const [t, w] = await Promise.all([
-      base44.entities.Table.list(),
-      base44.entities.Waiter.list()
-    ]);
-    setTables(t);
-    setWaiters(w);
-    setLoading(false);
-  };
+  const createWaiter = useCreateWaiter();
+  const updateWaiter = useUpdateWaiter();
+  const deleteWaiterMutation = useDeleteWaiter();
 
   const toggleTable = async (table) => {
-    await base44.entities.Table.update(table.id, { active: !table.active });
-    loadAll();
+    await localDB.entities.Table.update(table.id, { active: !table.active });
+    qc.invalidateQueries({ queryKey: ['tables'] });
   };
 
   const deleteTable = async (id) => {
-    await base44.entities.Table.delete(id);
-    loadAll();
+    await localDB.entities.Table.delete(id);
+    qc.invalidateQueries({ queryKey: ['tables'] });
   };
 
   const addWaiter = async () => {
     if (!waiterForm.name.trim()) return;
-    await base44.entities.Waiter.create({
-      ...waiterForm,
-      active: true,
-      permissions: { ...DEFAULT_PERMISSIONS }
-    });
+    await createWaiter.mutateAsync({ ...waiterForm, active: true, permissions: { ...DEFAULT_PERMISSIONS } });
     setWaiterForm({ name: '', nickname: '', phone: '', password: '' });
     setShowAddWaiter(false);
-    loadAll();
   };
 
   const toggleWaiter = async (waiter) => {
-    await base44.entities.Waiter.update(waiter.id, { active: !waiter.active });
-    loadAll();
+    await updateWaiter.mutateAsync({ id: waiter.id, data: { active: !waiter.active } });
   };
 
   const deleteWaiter = async (id) => {
-    await base44.entities.Waiter.delete(id);
-    loadAll();
+    await deleteWaiterMutation.mutateAsync(id);
   };
 
   const openEdit = (waiter) => {
@@ -95,15 +85,17 @@ export default function Configuracoes() {
   };
 
   const saveEdit = async () => {
-    await base44.entities.Waiter.update(editingWaiter.id, {
-      name: editingWaiter.name,
-      nickname: editingWaiter.nickname,
-      phone: editingWaiter.phone,
-      password: editingWaiter.password,
-      permissions: editingWaiter.permissions,
+    await updateWaiter.mutateAsync({
+      id: editingWaiter.id,
+      data: {
+        name: editingWaiter.name,
+        nickname: editingWaiter.nickname,
+        phone: editingWaiter.phone,
+        password: editingWaiter.password,
+        permissions: editingWaiter.permissions,
+      }
     });
     setEditingWaiter(null);
-    loadAll();
   };
 
   const togglePerm = (key) => {
@@ -114,6 +106,40 @@ export default function Configuracoes() {
         [key]: !(prev.permissions?.[key] ?? DEFAULT_PERMISSIONS[key])
       }
     }));
+  };
+
+  const handleExport = () => {
+    const json = exportData();
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `barmaster-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = importData(ev.target.result);
+      if (result.success) {
+        qc.invalidateQueries();
+        setImportError('');
+        alert('Dados importados com sucesso!');
+      } else {
+        setImportError(result.error);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleReset = () => {
+    if (!confirm('Tem certeza? Isso vai apagar TODOS os dados e restaurar o padrão.')) return;
+    resetData();
+    qc.invalidateQueries();
   };
 
   return (
@@ -281,6 +307,32 @@ export default function Configuracoes() {
           <Button size="sm" variant="outline" onClick={() => navigator.clipboard.writeText(`${window.location.origin}/GarcomLogin`)}>
             Copiar
           </Button>
+        </div>
+      </div>
+
+      {/* Backup section */}
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
+          <span className="text-base">💾</span>
+          <span className="font-semibold text-sm text-foreground">Backup de Dados</span>
+        </div>
+        <div className="p-4 space-y-3">
+          <p className="text-xs text-muted-foreground">Exporte todos os dados para um arquivo JSON ou restaure a partir de um backup anterior.</p>
+          <div className="flex flex-wrap gap-3">
+            <Button size="sm" variant="outline" className="gap-1.5" onClick={handleExport}>
+              📤 Exportar Backup
+            </Button>
+            <label>
+              <input type="file" accept=".json" className="hidden" onChange={handleImport} />
+              <Button size="sm" variant="outline" className="gap-1.5" asChild>
+                <span className="cursor-pointer">📥 Importar Backup</span>
+              </Button>
+            </label>
+            <Button size="sm" variant="outline" className="gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/10" onClick={handleReset}>
+              🗑️ Resetar Dados
+            </Button>
+          </div>
+          {importError && <p className="text-xs text-destructive">{importError}</p>}
         </div>
       </div>
 

@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
-import { Plus, Pencil, Trash2, Search, ToggleLeft, ToggleRight, ImagePlus, X, ChevronDown, ChevronUp, Tag, Image } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { useProducts, useCustomCategories, useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/hooks/useProducts';
+import { Plus, Pencil, Trash2, Search, ToggleLeft, ToggleRight, ImagePlus, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,40 +31,31 @@ const getEmptyProduct = (firstCategory) => ({
 
 export default function Cardapio() {
   const [tab, setTab] = useState('produtos');
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterCat, setFilterCat] = useState('all');
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [allCategories, setAllCategories] = useState(BUILTIN_CATEGORIES);
   const [form, setForm] = useState(getEmptyProduct('cervejas'));
-  const [uploadingImage, setUploadingImage] = useState(false);
   const [showModifiers, setShowModifiers] = useState(false);
   const [newMod, setNewMod] = useState({ name: '', price: '', type: 'optional' });
   const fileInputRef = useRef(null);
 
-  useEffect(() => {
-    loadProducts();
-    loadCustomCategories();
-  }, []);
+  const { data: products = [], isLoading: loading } = useProducts();
+  const { data: customCategories = [] } = useCustomCategories();
+  const createProduct = useCreateProduct();
+  const updateProduct = useUpdateProduct();
+  const deleteProductMutation = useDeleteProduct();
 
-  const loadCustomCategories = async () => {
-    const custom = await base44.entities.CustomCategory.list();
-    const activeCustom = custom.filter(c => c.active).map(c => ({
-      value: c.value,
-      label: `${c.emoji || '🏷️'} ${c.label}`,
-      print_dept: c.print_dept || 'bar'
-    }));
-    setAllCategories([...BUILTIN_CATEGORIES, ...activeCustom]);
-  };
-
-  const loadProducts = async () => {
-    setLoading(true);
-    const data = await base44.entities.Product.list();
-    setProducts(data);
-    setLoading(false);
-  };
+  const allCategories = [
+    ...BUILTIN_CATEGORIES,
+    ...customCategories
+      .filter(c => c.active)
+      .map(c => ({
+        value: c.value,
+        label: `${c.emoji || '🏷️'} ${c.label}`,
+        print_dept: c.print_dept || 'bar'
+      }))
+  ];
 
   const openCreate = () => {
     const firstCat = allCategories[0]?.value || 'cervejas';
@@ -75,6 +66,7 @@ export default function Cardapio() {
     setNewMod({ name: '', price: '', type: 'optional' });
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
   const openEdit = (p) => {
     setEditing(p);
     const catDept = allCategories.find(c => c.value === p.category)?.print_dept || 'bar';
@@ -99,31 +91,19 @@ export default function Cardapio() {
   const save = async () => {
     const data = { ...form, price: parseFloat(form.price) || 0 };
     if (editing) {
-      await base44.entities.Product.update(editing.id, data);
+      await updateProduct.mutateAsync({ id: editing.id, data });
     } else {
-      await base44.entities.Product.create(data);
+      await createProduct.mutateAsync(data);
     }
     setShowForm(false);
-    loadProducts();
   };
 
   const deleteProduct = async (id) => {
-    await base44.entities.Product.delete(id);
-    loadProducts();
-  };
-
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploadingImage(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    setForm(p => ({ ...p, image_url: file_url }));
-    setUploadingImage(false);
+    await deleteProductMutation.mutateAsync(id);
   };
 
   const toggleAvailable = async (p) => {
-    await base44.entities.Product.update(p.id, { available: !p.available });
-    loadProducts();
+    await updateProduct.mutateAsync({ id: p.id, data: { available: !p.available } });
   };
 
   const filtered = products.filter(p => {
@@ -171,7 +151,7 @@ export default function Cardapio() {
         ))}
       </div>
 
-      {tab === 'categorias' && <CategoriesManager onCategoriesChange={loadCustomCategories} />}
+      {tab === 'categorias' && <CategoriesManager />}
       {tab === 'banners' && <BannersManager />}
 
       {tab === 'produtos' && (
@@ -277,7 +257,7 @@ export default function Cardapio() {
           <div className="space-y-4 pt-2">
             <div className="grid grid-cols-2 gap-3">
               <div className="col-span-2">
-                <Label>Foto do Produto</Label>
+                <Label>URL da Foto</Label>
                 <div className="mt-1.5 flex items-center gap-3">
                   {form.image_url ? (
                     <div className="relative">
@@ -294,18 +274,12 @@ export default function Cardapio() {
                       <ImagePlus className="w-6 h-6 text-muted-foreground" />
                     </div>
                   )}
-                  <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    disabled={uploadingImage}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <ImagePlus className="w-4 h-4" />
-                    {uploadingImage ? 'Enviando...' : form.image_url ? 'Trocar foto' : 'Adicionar foto'}
-                  </Button>
+                  <Input
+                    value={form.image_url}
+                    onChange={e => setForm(p => ({ ...p, image_url: e.target.value }))}
+                    placeholder="https://..."
+                    className="flex-1 bg-secondary border-border text-sm"
+                  />
                 </div>
               </div>
               <div className="col-span-2">

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { localDB } from '@/lib/localDB';
+import { useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft, Plus, Minus, Send, Receipt, Check, X, StickyNote, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -20,19 +21,20 @@ export default function MesaDetalhe({ table, existingOrder, onBack }) {
   const [noteItem, setNoteItem] = useState(null);
   const [noteText, setNoteText] = useState('');
   const [sendingOrder, setSendingOrder] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = async () => {
-    const prods = await base44.entities.Product.filter({ available: true });
+    const prods = await localDB.entities.Product.filter({ available: true });
     setProducts(prods);
 
     if (existingOrder) {
       setOrder(existingOrder);
     } else {
-      const newOrder = await base44.entities.Order.create({
+      const newOrder = await localDB.entities.Order.create({
         table_id: table.id,
         table_number: table.number,
         table_type: table.type,
@@ -43,7 +45,9 @@ export default function MesaDetalhe({ table, existingOrder, onBack }) {
         total: 0,
         opened_at: new Date().toISOString(),
       });
-      await base44.entities.Table.update(table.id, { status: 'ocupada' });
+      await localDB.entities.Table.update(table.id, { status: 'ocupada' });
+      queryClient.invalidateQueries({ queryKey: ['tables'] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
       setOrder(newOrder);
     }
   };
@@ -58,7 +62,8 @@ export default function MesaDetalhe({ table, existingOrder, onBack }) {
     const totals = recalc(newItems);
     const updated = { ...order, items: newItems, ...totals };
     setOrder(updated);
-    await base44.entities.Order.update(order.id, { items: newItems, ...totals });
+    await localDB.entities.Order.update(order.id, { items: newItems, ...totals });
+    queryClient.invalidateQueries({ queryKey: ['orders'] });
   };
 
   const buildItemsFromEntries = (entries, baseItems) => {
@@ -104,14 +109,15 @@ export default function MesaDetalhe({ table, existingOrder, onBack }) {
     const totals = recalc(items);
     const updatedOrder = { ...order, items, ...totals };
     setOrder(updatedOrder);
-    await base44.entities.Order.update(order.id, { items, ...totals });
+    await localDB.entities.Order.update(order.id, { items, ...totals });
     const pending = items.filter(i => i.status === 'pendente');
     if (pending.length) printAutoByDept(updatedOrder, products, pending);
     const sentItems = items.map(i => i.status === 'pendente' ? { ...i, status: 'preparando' } : i);
     const sentTotals = recalc(sentItems);
     const finalOrder = { ...updatedOrder, items: sentItems, ...sentTotals };
     setOrder(finalOrder);
-    await base44.entities.Order.update(order.id, { items: sentItems, ...sentTotals });
+    await localDB.entities.Order.update(order.id, { items: sentItems, ...sentTotals });
+    queryClient.invalidateQueries({ queryKey: ['orders'] });
     setSendingOrder(false);
   };
 
@@ -140,21 +146,26 @@ export default function MesaDetalhe({ table, existingOrder, onBack }) {
   };
 
   const closeOrder = async (payMethod) => {
-    await base44.entities.Order.update(order.id, {
+    await localDB.entities.Order.update(order.id, {
       status: 'fechada',
       payment_method: payMethod,
       closed_at: new Date().toISOString(),
     });
     await Promise.all([
-      base44.entities.Table.update(order.table_id, { status: 'livre' }),
+      localDB.entities.Table.update(order.table_id, { status: 'livre' }),
       deductStockForOrder(order),
     ]);
+    queryClient.invalidateQueries({ queryKey: ['tables'] });
+    queryClient.invalidateQueries({ queryKey: ['orders'] });
+    queryClient.invalidateQueries({ queryKey: ['cashiers'] });
     onBack();
   };
 
   const cancelOrder = async () => {
-    await base44.entities.Order.update(order.id, { status: 'cancelada' });
-    if (order.table_id) await base44.entities.Table.update(order.table_id, { status: 'livre' });
+    await localDB.entities.Order.update(order.id, { status: 'cancelada' });
+    if (order.table_id) await localDB.entities.Table.update(order.table_id, { status: 'livre' });
+    queryClient.invalidateQueries({ queryKey: ['tables'] });
+    queryClient.invalidateQueries({ queryKey: ['orders'] });
     onBack();
   };
 

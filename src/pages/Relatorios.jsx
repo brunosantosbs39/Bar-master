@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useState } from 'react';
+import { useOrders } from '@/hooks/useOrders';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, ShoppingBag, DollarSign, Package, Users, Trophy } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -15,19 +15,9 @@ const payLabels = {
 };
 
 export default function Relatorios() {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: orders = [], isLoading: loading } = useOrders({ status: 'fechada' });
   const [period, setPeriod] = useState('today');
   const [tab, setTab] = useState('vendas');
-
-  useEffect(() => { loadOrders(); }, []);
-
-  const loadOrders = async () => {
-    setLoading(true);
-    const data = await base44.entities.Order.filter({ status: 'fechada' });
-    setOrders(data);
-    setLoading(false);
-  };
 
   const filterByPeriod = (orders) => {
     const now = new Date();

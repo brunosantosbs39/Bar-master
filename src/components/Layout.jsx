@@ -1,10 +1,11 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutGrid, BookOpen, BarChart3, Settings, Beer, QrCode, Package } from 'lucide-react';
+import { LayoutGrid, BookOpen, BarChart3, Settings, Beer, QrCode, Package, Wallet } from 'lucide-react';
 
 const navItems = [
   { path: '/Mesas', icon: LayoutGrid, label: 'Mesas' },
   { path: '/Cardapio', icon: BookOpen, label: 'Cardápio' },
   { path: '/Estoque', icon: Package, label: 'Estoque' },
+  { path: '/Caixa', icon: Wallet, label: 'Caixa' },
   { path: '/Relatorios', icon: BarChart3, label: 'Relatórios' },
   { path: '/QRCodes', icon: QrCode, label: 'QR Codes' },
   { path: '/Configuracoes', icon: Settings, label: 'Config.' },

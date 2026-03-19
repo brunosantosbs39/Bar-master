@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import { localDB } from '@/lib/localDB';
 import { Search, X, ChevronRight, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -47,10 +47,10 @@ export default function MenuPublico() {
 
   const loadData = async () => {
     setLoading(true);
-    const prods = await base44.entities.Product.filter({ available: true });
+    const prods = await localDB.entities.Product.filter({ available: true });
     setProducts(prods);
     if (tableId) {
-      const tables = await base44.entities.Table.filter({ id: tableId });
+      const tables = await localDB.entities.Table.filter({ id: tableId });
       if (tables.length > 0) setTable(tables[0]);
     }
     setLoading(false);

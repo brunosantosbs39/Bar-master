@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { localDB } from '@/lib/localDB';
 import { useWaiterSession } from '@/lib/WaiterSessionContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,7 @@ export default function GarcomLogin() {
   }, [waiter]);
 
   useEffect(() => {
-    base44.entities.Waiter.filter({ active: true }).then(list => {
+    localDB.entities.Waiter.filter({ active: true }).then(list => {
       setWaiters(list);
       setLoading(false);
     });

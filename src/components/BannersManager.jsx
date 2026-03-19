@@ -1,12 +1,43 @@
 import { useState, useEffect, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import { localDB } from '@/lib/localDB';
 import { Plus, Pencil, Trash2, ImagePlus, X, ToggleRight, ToggleLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
+const BANNER_ENTITY = 'banners';
 const emptyBanner = { title: '', subtitle: '', image_url: '', bg_color: '#1a1a2e', text_color: '#ffffff', active: true, order: 0 };
+
+// Using localDB with a custom banners collection
+const BannerDB = {
+  list: () => localDB.entities.Settings.list().then(() => {
+    try {
+      const raw = localStorage.getItem('bm_banners');
+      return raw ? JSON.parse(raw) : [];
+    } catch { return []; }
+  }),
+  create: (data) => {
+    const items = JSON.parse(localStorage.getItem('bm_banners') || '[]');
+    const now = new Date().toISOString();
+    const item = { ...data, id: `${Date.now()}-${Math.random().toString(36).slice(2,9)}`, created_at: now, updated_at: now };
+    items.push(item);
+    localStorage.setItem('bm_banners', JSON.stringify(items));
+    return Promise.resolve(item);
+  },
+  update: (id, data) => {
+    const items = JSON.parse(localStorage.getItem('bm_banners') || '[]');
+    const idx = items.findIndex(i => i.id === id);
+    if (idx !== -1) { items[idx] = { ...items[idx], ...data, updated_at: new Date().toISOString() }; }
+    localStorage.setItem('bm_banners', JSON.stringify(items));
+    return Promise.resolve(items[idx]);
+  },
+  delete: (id) => {
+    const items = JSON.parse(localStorage.getItem('bm_banners') || '[]').filter(i => i.id !== id);
+    localStorage.setItem('bm_banners', JSON.stringify(items));
+    return Promise.resolve();
+  },
+};
 
 export default function BannersManager() {
   const [banners, setBanners] = useState([]);
@@ -14,14 +45,13 @@ export default function BannersManager() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyBanner);
-  const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => { load(); }, []);
 
   const load = async () => {
     setLoading(true);
-    const data = await base44.entities.PromoBanner.list();
+    const data = await BannerDB.list();
     setBanners(data.sort((a, b) => (a.order || 0) - (b.order || 0)));
     setLoading(false);
   };
@@ -42,31 +72,22 @@ export default function BannersManager() {
 
   const save = async () => {
     if (editing) {
-      await base44.entities.PromoBanner.update(editing.id, form);
+      await BannerDB.update(editing.id, form);
     } else {
-      await base44.entities.PromoBanner.create(form);
+      await BannerDB.create(form);
     }
     setShowForm(false);
     load();
   };
 
   const deleteBanner = async (id) => {
-    await base44.entities.PromoBanner.delete(id);
+    await BannerDB.delete(id);
     load();
   };
 
   const toggleActive = async (b) => {
-    await base44.entities.PromoBanner.update(b.id, { active: !b.active });
+    await BannerDB.update(b.id, { active: !b.active });
     load();
-  };
-
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploadingImage(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    setForm(p => ({ ...p, image_url: file_url }));
-    setUploadingImage(false);
   };
 
   if (loading) return <div className="flex justify-center py-16"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
@@ -142,7 +163,7 @@ export default function BannersManager() {
             </div>
 
             <div>
-              <Label>Imagem do Banner</Label>
+              <Label>URL da Imagem</Label>
               <div className="mt-1.5 flex items-center gap-3">
                 {form.image_url ? (
                   <div className="relative">
@@ -156,11 +177,12 @@ export default function BannersManager() {
                     <ImagePlus className="w-5 h-5 text-muted-foreground" />
                   </div>
                 )}
-                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                <Button type="button" variant="outline" size="sm" className="gap-2" disabled={uploadingImage} onClick={() => fileInputRef.current?.click()}>
-                  <ImagePlus className="w-4 h-4" />
-                  {uploadingImage ? 'Enviando...' : form.image_url ? 'Trocar' : 'Adicionar'}
-                </Button>
+                <Input
+                  placeholder="https://..."
+                  value={form.image_url}
+                  onChange={e => setForm(p => ({ ...p, image_url: e.target.value }))}
+                  className="flex-1 bg-secondary border-border text-xs"
+                />
               </div>
             </div>
 

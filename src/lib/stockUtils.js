@@ -1,4 +1,4 @@
-import { base44 } from '@/api/base44Client';
+import { localDB } from './localDB';
 
 /**
  * Deduz estoque automaticamente ao fechar uma comanda.
@@ -8,7 +8,7 @@ import { base44 } from '@/api/base44Client';
 export async function deductStockForOrder(order) {
   if (!order?.items?.length) return;
 
-  const stockItems = await base44.entities.StockItem.filter({ active: true });
+  const stockItems = await localDB.entities.Stock.filter({ active: true });
 
   // Map product_id -> stock item
   const stockByProduct = {};
@@ -17,7 +17,6 @@ export async function deductStockForOrder(order) {
   });
 
   const updates = [];
-  const movements = [];
 
   for (const item of order.items) {
     const stock = stockByProduct[item.product_id];
@@ -28,21 +27,10 @@ export async function deductStockForOrder(order) {
     const after = Math.max(0, before - deduct);
 
     updates.push({ id: stock.id, quantity: after });
-    movements.push({
-      stock_item_id: stock.id,
-      stock_item_name: stock.name,
-      type: 'saida',
-      quantity: deduct,
-      quantity_before: before,
-      quantity_after: after,
-      order_id: order.id,
-      notes: `Baixa automática - Comanda #${order.id?.slice(-6)?.toUpperCase()} - ${item.product_name} x${item.quantity}`,
-    });
   }
 
-  // Execute all updates and movements in parallel
-  await Promise.all([
-    ...updates.map(u => base44.entities.StockItem.update(u.id, { quantity: u.quantity })),
-    ...movements.map(m => base44.entities.StockMovement.create(m)),
-  ]);
+  // Execute all updates in parallel
+  await Promise.all(
+    updates.map(u => localDB.entities.Stock.update(u.id, { quantity: u.quantity }))
+  );
 }

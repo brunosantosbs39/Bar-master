@@ -250,7 +250,7 @@ function ProductCard({ product, cat, idx, onClick }) {
       <div className="px-3 py-2.5">
         <p className="font-semibold text-white text-sm leading-tight line-clamp-2">{product.name}</p>
         {product.description && (
-          <p className="text-white/40 text-xs mt-1 line-clamp-1">{product.description}</p>
+          <p className="text-white/50 text-xs mt-1 line-clamp-2 leading-relaxed">{product.description}</p>
         )}
         {product.modifiers?.length > 0 && (
           <span className="inline-block mt-1.5 text-[10px] text-amber-400/80 border border-amber-500/20 bg-amber-500/8 px-1.5 py-0.5 rounded-full">

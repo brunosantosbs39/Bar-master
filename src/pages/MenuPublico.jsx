@@ -277,21 +277,21 @@ function ProductModal({ product, onClose }) {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 60 }}
         transition={{ type: 'spring', damping: 28, stiffness: 400 }}
-        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg bg-[#111008] rounded-t-3xl z-50 overflow-hidden shadow-2xl"
+        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg bg-[#111008] rounded-t-3xl z-50 shadow-2xl max-h-[85vh] flex flex-col"
       >
         {/* Product image */}
         {product.image_url ? (
-          <div className="relative h-56 overflow-hidden">
+          <div className="relative h-56 overflow-hidden flex-shrink-0">
             <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#111008] via-transparent to-transparent" />
           </div>
         ) : (
-          <div className="h-32 flex items-center justify-center text-6xl bg-gradient-to-br from-amber-950/50 to-transparent">
+          <div className="h-32 flex items-center justify-center text-6xl bg-gradient-to-br from-amber-950/50 to-transparent flex-shrink-0">
             {categoryEmoji[product.category] || '📦'}
           </div>
         )}
 
-        <div className="px-5 pb-8 pt-3">
+        <div className="px-5 pb-8 pt-3 overflow-y-auto flex-1">
           {/* Close handle */}
           <div className="w-10 h-1 rounded-full bg-white/20 mx-auto mb-4" />
 

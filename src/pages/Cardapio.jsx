@@ -10,7 +10,6 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { motion, AnimatePresence } from 'framer-motion';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import BannersManager from '@/components/BannersManager';
 import CategoriesManager from '@/components/CategoriesManager';
@@ -159,7 +158,34 @@ export default function Cardapio() {
         }
       );
     }
-    // PRODUCT drag será adicionado na Task 5
+    if (type === 'PRODUCT') {
+      const catKey = source.droppableId;
+      const catItems = grouped[catKey]?.items ?? [];
+      if (!catItems.length) return;
+
+      const newItems = [...catItems];
+      const [moved] = newItems.splice(source.index, 1);
+      newItems.splice(destination.index, 0, moved);
+
+      const updates = newItems.map((p, i) => ({ id: p.id, sort_order: i }));
+
+      const productsQueryKey = ['products', {}];
+      const previousProducts = queryClient.getQueryData(productsQueryKey);
+      queryClient.setQueryData(productsQueryKey, (old) => {
+        if (!Array.isArray(old)) return old;
+        return old.map(p => {
+          const upd = updates.find(u => u.id === p.id);
+          return upd ? { ...p, sort_order: upd.sort_order } : p;
+        });
+      });
+
+      reorderProducts.mutate(updates, {
+        onError: () => {
+          queryClient.setQueryData(productsQueryKey, previousProducts);
+          toast.error('Falha ao salvar ordem dos produtos. Tente novamente.');
+        },
+      });
+    }
   };
 
   const filtered = products.filter(p => {
@@ -169,7 +195,13 @@ export default function Cardapio() {
   });
 
   const grouped = allCategories.reduce((acc, cat) => {
-    const items = filtered.filter(p => p.category === cat.value);
+    const catItems = filtered.filter(p => p.category === cat.value);
+    // Produtos com sort_order definido vêm ordenados; sem sort_order mantêm posição original (índice).
+    const items = catItems.slice().sort((a, b) => {
+      const ai = a.sort_order != null ? a.sort_order : catItems.indexOf(a) + 10000;
+      const bi = b.sort_order != null ? b.sort_order : catItems.indexOf(b) + 10000;
+      return ai - bi;
+    });
     if (items.length) acc[cat.value] = { label: cat.label, items };
     return acc;
   }, {});
@@ -288,55 +320,78 @@ export default function Cardapio() {
                                   {catData.label} <span className="text-xs font-normal">({catData.items.length})</span>
                                 </h2>
 
-                                {/* Lista de produtos — mantida com AnimatePresence por ora, Task 5 vai atualizar */}
-                                <div className="space-y-2">
-                                  <AnimatePresence>
-                                    {catData.items.map((p, i) => (
-                                      <motion.div
-                                        key={p.id}
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: i * 0.03 }}
-                                        className={`flex items-center gap-4 p-4 rounded-xl border bg-card transition-all ${
-                                          p.available ? 'border-border' : 'border-border opacity-50'
-                                        }`}
-                                      >
-                                        {p.image_url ? (
-                                          <img src={p.image_url} alt={p.name} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
-                                        ) : (
-                                          <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0 text-xl">
-                                            {allCategories.find(c => c.value === p.category)?.label?.split(' ')[0] || '🍽️'}
-                                          </div>
-                                        )}
-                                        <div className="flex-1 min-w-0">
-                                          <div className="flex items-center gap-2">
-                                            <span className="font-medium text-foreground truncate">{p.name}</span>
-                                            {!p.available && <Badge variant="outline" className="text-xs text-muted-foreground border-border">Indisponível</Badge>}
-                                            {p.code && <span className="text-xs text-muted-foreground">#{p.code}</span>}
-                                            {p.print_dept === 'bar' && <span className="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-1.5 py-0.5 rounded-full">🍺 Bar</span>}
-                                            {p.print_dept === 'cozinha' && <span className="text-[10px] bg-orange-500/10 text-orange-400 border border-orange-500/20 px-1.5 py-0.5 rounded-full">🍳 Cozinha</span>}
-                                            {p.print_dept === 'nenhum' && <span className="text-[10px] bg-secondary text-muted-foreground border border-border px-1.5 py-0.5 rounded-full">🚫 Sem impressão</span>}
-                                          </div>
-                                          {p.description && <p className="text-xs text-muted-foreground mt-0.5 truncate">{p.description}</p>}
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                          <span className="font-bold text-primary text-sm whitespace-nowrap">
-                                            R$ {p.price.toFixed(2)}
-                                          </span>
-                                          <button onClick={() => toggleAvailable(p)} className="text-muted-foreground hover:text-foreground transition-colors">
-                                            {p.available ? <ToggleRight className="w-5 h-5 text-emerald-400" /> : <ToggleLeft className="w-5 h-5" />}
-                                          </button>
-                                          <button onClick={() => openEdit(p)} className="text-muted-foreground hover:text-foreground transition-colors">
-                                            <Pencil className="w-4 h-4" />
-                                          </button>
-                                          <button onClick={() => deleteProduct(p.id)} className="text-muted-foreground hover:text-destructive transition-colors">
-                                            <Trash2 className="w-4 h-4" />
-                                          </button>
-                                        </div>
-                                      </motion.div>
-                                    ))}
-                                  </AnimatePresence>
-                                </div>
+                                <Droppable droppableId={cat.value} type="PRODUCT" isDropDisabled={!canDrag}>
+                                  {(prodProvided) => (
+                                    <div
+                                      ref={prodProvided.innerRef}
+                                      {...prodProvided.droppableProps}
+                                      className="space-y-2"
+                                    >
+                                      {catData.items.map((p, i) => (
+                                        <Draggable
+                                          key={p.id}
+                                          draggableId={p.id}
+                                          index={i}
+                                          isDragDisabled={!canDrag}
+                                        >
+                                          {(prodDraggable, prodSnapshot) => (
+                                            <div
+                                              ref={prodDraggable.innerRef}
+                                              {...prodDraggable.draggableProps}
+                                              className={`flex items-center gap-4 p-4 rounded-xl border bg-card transition-all ${
+                                                p.available ? 'border-border' : 'border-border opacity-50'
+                                              } ${prodSnapshot.isDragging ? 'shadow-lg ring-1 ring-primary/30' : ''}`}
+                                            >
+                                              {canDrag && (
+                                                <span
+                                                  {...prodDraggable.dragHandleProps}
+                                                  className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground select-none flex-shrink-0 text-base"
+                                                  title="Arrastar para reordenar"
+                                                >
+                                                  ⠿
+                                                </span>
+                                              )}
+
+                                              {p.image_url ? (
+                                                <img src={p.image_url} alt={p.name} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                                              ) : (
+                                                <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0 text-xl">
+                                                  {allCategories.find(c => c.value === p.category)?.label?.split(' ')[0] || '🍽️'}
+                                                </div>
+                                              )}
+
+                                              <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                  <span className="font-medium text-foreground truncate">{p.name}</span>
+                                                  {!p.available && <Badge variant="outline" className="text-xs text-muted-foreground border-border">Indisponível</Badge>}
+                                                  {p.code && <span className="text-xs text-muted-foreground">#{p.code}</span>}
+                                                  {p.print_dept === 'bar' && <span className="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-1.5 py-0.5 rounded-full">🍺 Bar</span>}
+                                                  {p.print_dept === 'cozinha' && <span className="text-[10px] bg-orange-500/10 text-orange-400 border border-orange-500/20 px-1.5 py-0.5 rounded-full">🍳 Cozinha</span>}
+                                                  {p.print_dept === 'nenhum' && <span className="text-[10px] bg-secondary text-muted-foreground border border-border px-1.5 py-0.5 rounded-full">🚫 Sem impressão</span>}
+                                                </div>
+                                                {p.description && <p className="text-xs text-muted-foreground mt-0.5 truncate">{p.description}</p>}
+                                              </div>
+
+                                              <div className="flex items-center gap-3">
+                                                <span className="font-bold text-primary text-sm whitespace-nowrap">R$ {p.price.toFixed(2)}</span>
+                                                <button onClick={() => toggleAvailable(p)} className="text-muted-foreground hover:text-foreground transition-colors">
+                                                  {p.available ? <ToggleRight className="w-5 h-5 text-emerald-400" /> : <ToggleLeft className="w-5 h-5" />}
+                                                </button>
+                                                <button onClick={() => openEdit(p)} className="text-muted-foreground hover:text-foreground transition-colors">
+                                                  <Pencil className="w-4 h-4" />
+                                                </button>
+                                                <button onClick={() => deleteProduct(p.id)} className="text-muted-foreground hover:text-destructive transition-colors">
+                                                  <Trash2 className="w-4 h-4" />
+                                                </button>
+                                              </div>
+                                            </div>
+                                          )}
+                                        </Draggable>
+                                      ))}
+                                      {prodProvided.placeholder}
+                                    </div>
+                                  )}
+                                </Droppable>
                               </div>
                             )}
                           </Draggable>

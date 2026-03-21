@@ -3,7 +3,7 @@
 
 import 'dotenv/config';
 import { ensureWorkerConfig } from './setup.js';
-ensureWorkerConfig();
+try { ensureWorkerConfig(); } catch (e) { console.warn('Worker config setup falhou:', e.message); }
 
 import express from 'express';
 import cors from 'cors';

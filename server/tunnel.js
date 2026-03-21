@@ -82,9 +82,8 @@ async function startLocaltunnel(vitePort) {
     _tunnelUrl = tunnel.url;
     console.log('   Localtunnel ativo: ' + _tunnelUrl);
     console.log('   Aviso: exige senha no 1o acesso. Acesse loca.lt/mytunnelpassword');
-    registerWithWorker(_tunnelUrl);
-    tunnel.on('close', () => { _tunnelUrl = null; deregisterFromWorker(); });
-    tunnel.on('error', () => { _tunnelUrl = null; deregisterFromWorker(); });
+    tunnel.on('close', () => { _tunnelUrl = null; });
+    tunnel.on('error', () => { _tunnelUrl = null; });
   } catch (_e) {
     console.log('   Sem internet - tunel indisponivel.');
     console.log('   QR Code funcionara apenas na rede Wi-Fi local.');

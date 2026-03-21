@@ -49,7 +49,7 @@ async function handleRegister(request, env) {
   }
 
   await env.TUNNEL_URL.put(TUNNEL_URL_KEY, body.url, { expirationTtl: TUNNEL_URL_TTL });
-  await env.TUNNEL_URL.put(TUNNEL_UPDATED_AT_KEY, new Date().toISOString());
+  await env.TUNNEL_URL.put(TUNNEL_UPDATED_AT_KEY, new Date().toISOString(), { expirationTtl: TUNNEL_URL_TTL });
 
   return jsonResponse({ ok: true, url: body.url });
 }

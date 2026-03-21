@@ -1,10 +1,8 @@
 // server/tunnel.js - Tunel publico (cloudflared sem tela de senha)
 import { spawn } from 'child_process';
-import { existsSync, createWriteStream, accessSync, statSync } from 'fs';
-import { unlink } from 'fs';
+import { existsSync, accessSync, statSync, writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import https from 'https';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -145,19 +143,9 @@ async function deregisterFromWorker() {
   } catch (_e) { /* best-effort — processo encerrando */ }
 }
 
-function downloadFile(url, dest) {
-  return new Promise((resolve, reject) => {
-    const file = createWriteStream(dest);
-    const request = (u) => {
-      https.get(u, (res) => {
-        if (res.statusCode === 301 || res.statusCode === 302) {
-          file.close();
-          return request(res.headers.location);
-        }
-        res.pipe(file);
-        file.on('finish', () => file.close(resolve));
-      }).on('error', (e) => { unlink(dest, () => {}); reject(e); });
-    };
-    request(url);
-  });
+async function downloadFile(url, dest) {
+  const res = await fetch(url, { redirect: 'follow' });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const buffer = Buffer.from(await res.arrayBuffer());
+  writeFileSync(dest, buffer);
 }

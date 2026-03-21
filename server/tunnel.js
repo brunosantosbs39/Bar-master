@@ -1,6 +1,6 @@
 // server/tunnel.js - Tunel publico (cloudflared sem tela de senha)
 import { spawn } from 'child_process';
-import { existsSync, createWriteStream, accessSync } from 'fs';
+import { existsSync, createWriteStream, accessSync, statSync } from 'fs';
 import { unlink } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -21,7 +21,7 @@ export async function startTunnel(vitePort) {
 
   let cfBin = null;
   for (const c of candidates) {
-    try { accessSync(c); cfBin = c; break; } catch (_e) { /* tenta proximo */ }
+    try { accessSync(c); if (statSync(c).size > 1024) { cfBin = c; break; } } catch (_e) { /* tenta proximo */ }
   }
 
   if (!cfBin) {
@@ -43,7 +43,14 @@ export async function startTunnel(vitePort) {
   console.log('   Abrindo tunel cloudflare (sem tela de senha)...');
   return new Promise((resolve) => {
     const args = ['tunnel', '--url', 'http://localhost:' + vitePort, '--no-autoupdate'];
-    const proc = spawn(cfBin, args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    let proc;
+    try {
+      proc = spawn(cfBin, args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    } catch (_e) {
+      console.log('   Erro ao iniciar cloudflared. Tentando localtunnel...');
+      startLocaltunnel(vitePort).then(resolve);
+      return;
+    }
 
     let found = false;
     const urlPattern = new RegExp('https://[a-z0-9-]+[.]trycloudflare[.]com');

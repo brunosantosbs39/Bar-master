@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion, AnimatePresence } from 'framer-motion';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import BannersManager from '@/components/BannersManager';
 import CategoriesManager from '@/components/CategoriesManager';
 import { BUILTIN_CATEGORIES } from '@/lib/categories';
@@ -131,6 +132,36 @@ export default function Cardapio() {
     await updateProduct.mutateAsync({ id: p.id, data: { available: !p.available } });
   };
 
+  // canDrag: desabilita arrasto quando filtro ou busca estão ativos
+  const canDrag = search === '' && filterCat === 'all';
+
+  const handleDragEnd = (result) => {
+    const { destination, source, type } = result;
+    if (!destination) return;
+    if (destination.droppableId === source.droppableId && destination.index === source.index) return;
+
+    if (type === 'CATEGORY') {
+      const currentOrder = allCategories.map(c => c.value);
+      const newOrder = [...currentOrder];
+      const [moved] = newOrder.splice(source.index, 1);
+      newOrder.splice(destination.index, 0, moved);
+
+      const previousSettings = queryClient.getQueryData(['settings']);
+      queryClient.setQueryData(['settings'], (old) => ({ ...old, category_order: newOrder }));
+
+      updateSettings.mutate(
+        { category_order: newOrder },
+        {
+          onError: () => {
+            queryClient.setQueryData(['settings'], previousSettings);
+            toast.error('Falha ao salvar ordem das categorias. Tente novamente.');
+          },
+        }
+      );
+    }
+    // PRODUCT drag será adicionado na Task 5
+  };
+
   const filtered = products.filter(p => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
     const matchCat = filterCat === 'all' || p.category === filterCat;
@@ -202,74 +233,121 @@ export default function Cardapio() {
             </Select>
           </div>
 
-          {loading ? (
-            <div className="flex justify-center py-16">
-              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : (
-            Object.entries(grouped).map(([catKey, { label, items }]) => (
-              <div key={catKey} className="mb-8">
-                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-                  {label} <span className="text-xs font-normal">({items.length})</span>
-                </h2>
-                <div className="space-y-2">
-                  <AnimatePresence>
-                    {items.map((p, i) => (
-                      <motion.div
-                        key={p.id}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.03 }}
-                        className={`flex items-center gap-4 p-4 rounded-xl border bg-card transition-all ${
-                          p.available ? 'border-border' : 'border-border opacity-50'
-                        }`}
-                      >
-                        {p.image_url ? (
-                          <img src={p.image_url} alt={p.name} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
-                        ) : (
-                          <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0 text-xl">
-                            {allCategories.find(c => c.value === p.category)?.label?.split(' ')[0] || '🍽️'}
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-foreground truncate">{p.name}</span>
-                            {!p.available && <Badge variant="outline" className="text-xs text-muted-foreground border-border">Indisponível</Badge>}
-                            {p.code && <span className="text-xs text-muted-foreground">#{p.code}</span>}
-                            {p.print_dept === 'bar' && <span className="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-1.5 py-0.5 rounded-full">🍺 Bar</span>}
-                            {p.print_dept === 'cozinha' && <span className="text-[10px] bg-orange-500/10 text-orange-400 border border-orange-500/20 px-1.5 py-0.5 rounded-full">🍳 Cozinha</span>}
-                            {p.print_dept === 'nenhum' && <span className="text-[10px] bg-secondary text-muted-foreground border border-border px-1.5 py-0.5 rounded-full">🚫 Sem impressão</span>}
-                          </div>
-                          {p.description && <p className="text-xs text-muted-foreground mt-0.5 truncate">{p.description}</p>}
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="font-bold text-primary text-sm whitespace-nowrap">
-                            R$ {p.price.toFixed(2)}
-                          </span>
-                          <button onClick={() => toggleAvailable(p)} className="text-muted-foreground hover:text-foreground transition-colors">
-                            {p.available ? <ToggleRight className="w-5 h-5 text-emerald-400" /> : <ToggleLeft className="w-5 h-5" />}
-                          </button>
-                          <button onClick={() => openEdit(p)} className="text-muted-foreground hover:text-foreground transition-colors">
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          <button onClick={() => deleteProduct(p.id)} className="text-muted-foreground hover:text-destructive transition-colors">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
-              </div>
-            ))
-          )}
-
           {!loading && products.length === 0 && (
             <div className="text-center py-16">
               <div className="text-4xl mb-3">🍺</div>
               <p className="text-muted-foreground mb-4">Cardápio vazio</p>
               <Button onClick={openCreate} className="gap-2"><Plus className="w-4 h-4" /> Adicionar produto</Button>
             </div>
+          )}
+
+          {loading ? (
+            <div className="flex justify-center py-16">
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : (
+            <>
+              {/* Aviso quando filtro está ativo */}
+              {!canDrag && (search !== '' || filterCat !== 'all') && (
+                <p className="text-xs text-muted-foreground mb-3 flex items-center gap-1.5">
+                  <span>⠿</span> Limpe os filtros para reordenar
+                </p>
+              )}
+
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="categories" type="CATEGORY" isDropDisabled={!canDrag}>
+                  {(provided) => (
+                    <div ref={provided.innerRef} {...provided.droppableProps}>
+                      {allCategories.map((cat, index) => {
+                        const catData = grouped[cat.value];
+                        if (!catData) return null;
+                        return (
+                          <Draggable
+                            key={cat.value}
+                            draggableId={cat.value}
+                            index={index}
+                            isDragDisabled={!canDrag}
+                          >
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                className={`mb-8 ${snapshot.isDragging ? 'opacity-70' : ''}`}
+                              >
+                                {/* Header da categoria com handle de arrasto */}
+                                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                                  {canDrag && (
+                                    <span
+                                      {...provided.dragHandleProps}
+                                      className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground select-none"
+                                      title="Arrastar para reordenar"
+                                    >
+                                      ⠿
+                                    </span>
+                                  )}
+                                  {catData.label} <span className="text-xs font-normal">({catData.items.length})</span>
+                                </h2>
+
+                                {/* Lista de produtos — mantida com AnimatePresence por ora, Task 5 vai atualizar */}
+                                <div className="space-y-2">
+                                  <AnimatePresence>
+                                    {catData.items.map((p, i) => (
+                                      <motion.div
+                                        key={p.id}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: i * 0.03 }}
+                                        className={`flex items-center gap-4 p-4 rounded-xl border bg-card transition-all ${
+                                          p.available ? 'border-border' : 'border-border opacity-50'
+                                        }`}
+                                      >
+                                        {p.image_url ? (
+                                          <img src={p.image_url} alt={p.name} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                                        ) : (
+                                          <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0 text-xl">
+                                            {allCategories.find(c => c.value === p.category)?.label?.split(' ')[0] || '🍽️'}
+                                          </div>
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                          <div className="flex items-center gap-2">
+                                            <span className="font-medium text-foreground truncate">{p.name}</span>
+                                            {!p.available && <Badge variant="outline" className="text-xs text-muted-foreground border-border">Indisponível</Badge>}
+                                            {p.code && <span className="text-xs text-muted-foreground">#{p.code}</span>}
+                                            {p.print_dept === 'bar' && <span className="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-1.5 py-0.5 rounded-full">🍺 Bar</span>}
+                                            {p.print_dept === 'cozinha' && <span className="text-[10px] bg-orange-500/10 text-orange-400 border border-orange-500/20 px-1.5 py-0.5 rounded-full">🍳 Cozinha</span>}
+                                            {p.print_dept === 'nenhum' && <span className="text-[10px] bg-secondary text-muted-foreground border border-border px-1.5 py-0.5 rounded-full">🚫 Sem impressão</span>}
+                                          </div>
+                                          {p.description && <p className="text-xs text-muted-foreground mt-0.5 truncate">{p.description}</p>}
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                          <span className="font-bold text-primary text-sm whitespace-nowrap">
+                                            R$ {p.price.toFixed(2)}
+                                          </span>
+                                          <button onClick={() => toggleAvailable(p)} className="text-muted-foreground hover:text-foreground transition-colors">
+                                            {p.available ? <ToggleRight className="w-5 h-5 text-emerald-400" /> : <ToggleLeft className="w-5 h-5" />}
+                                          </button>
+                                          <button onClick={() => openEdit(p)} className="text-muted-foreground hover:text-foreground transition-colors">
+                                            <Pencil className="w-4 h-4" />
+                                          </button>
+                                          <button onClick={() => deleteProduct(p.id)} className="text-muted-foreground hover:text-destructive transition-colors">
+                                            <Trash2 className="w-4 h-4" />
+                                          </button>
+                                        </div>
+                                      </motion.div>
+                                    ))}
+                                  </AnimatePresence>
+                                </div>
+                              </div>
+                            )}
+                          </Draggable>
+                        );
+                      })}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            </>
           )}
         </div>
       )}

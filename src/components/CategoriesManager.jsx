@@ -8,19 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-const BUILT_IN_CATEGORIES = [
-  { value: 'cervejas', label: '🍺 Cervejas', emoji: '🍺', print_dept: 'bar', builtin: true },
-  { value: 'destilados', label: '🥃 Destilados', emoji: '🥃', print_dept: 'bar', builtin: true },
-  { value: 'drinks', label: '🍹 Drinks', emoji: '🍹', print_dept: 'bar', builtin: true },
-  { value: 'vinhos', label: '🍷 Vinhos', emoji: '🍷', print_dept: 'bar', builtin: true },
-  { value: 'nao_alcoolicos', label: '🥤 Não Alcoólicos', emoji: '🥤', print_dept: 'bar', builtin: true },
-  { value: 'bebidas', label: '🧃 Bebidas', emoji: '🧃', print_dept: 'bar', builtin: true },
-  { value: 'petiscos', label: '🍟 Petiscos', emoji: '🍟', print_dept: 'cozinha', builtin: true },
-  { value: 'porcoes', label: '🍖 Porções', emoji: '🍖', print_dept: 'cozinha', builtin: true },
-  { value: 'pratos', label: '🍽️ Pratos', emoji: '🍽️', print_dept: 'cozinha', builtin: true },
-  { value: 'sobremesas', label: '🍰 Sobremesas', emoji: '🍰', print_dept: 'cozinha', builtin: true },
-];
+import { BUILTIN_CATEGORIES } from '@/lib/categories';
 
 const emptyForm = { value: '', label: '', emoji: '🍽️', print_dept: 'bar', active: true, order: 0 };
 
@@ -38,7 +26,7 @@ export default function CategoriesManager({ onCategoriesChange }) {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ ...emptyForm, order: custom.length + BUILT_IN_CATEGORIES.length });
+    setForm({ ...emptyForm, order: custom.length + BUILTIN_CATEGORIES.length });
     setShowForm(true);
   };
 
@@ -87,7 +75,7 @@ export default function CategoriesManager({ onCategoriesChange }) {
       <div className="mb-4">
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Categorias do Sistema</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {BUILT_IN_CATEGORIES.map(c => (
+          {BUILTIN_CATEGORIES.map(c => (
             <div key={c.value} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-secondary/30 opacity-60">
               <span className="text-base">{c.emoji}</span>
               <span className="text-sm text-foreground flex-1 truncate">{c.label.split(' ').slice(1).join(' ')}</span>

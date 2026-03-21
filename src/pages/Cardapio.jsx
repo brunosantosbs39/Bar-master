@@ -10,19 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { motion, AnimatePresence } from 'framer-motion';
 import BannersManager from '@/components/BannersManager';
 import CategoriesManager from '@/components/CategoriesManager';
-
-const BUILTIN_CATEGORIES = [
-  { value: 'cervejas', label: '🍺 Cervejas', print_dept: 'bar' },
-  { value: 'destilados', label: '🥃 Destilados', print_dept: 'bar' },
-  { value: 'drinks', label: '🍹 Drinks', print_dept: 'bar' },
-  { value: 'vinhos', label: '🍷 Vinhos', print_dept: 'bar' },
-  { value: 'nao_alcoolicos', label: '🥤 Não Alcoólicos', print_dept: 'bar' },
-  { value: 'bebidas', label: '🧃 Bebidas', print_dept: 'bar' },
-  { value: 'petiscos', label: '🍟 Petiscos', print_dept: 'cozinha' },
-  { value: 'porcoes', label: '🍖 Porções', print_dept: 'cozinha' },
-  { value: 'pratos', label: '🍽️ Pratos', print_dept: 'cozinha' },
-  { value: 'sobremesas', label: '🍰 Sobremesas', print_dept: 'cozinha' },
-];
+import { BUILTIN_CATEGORIES } from '@/lib/categories';
 
 const getEmptyProduct = (firstCategory) => ({
   name: '', description: '', price: '', category: firstCategory || 'cervejas',
@@ -257,28 +245,52 @@ export default function Cardapio() {
           <div className="space-y-4 pt-2">
             <div className="grid grid-cols-2 gap-3">
               <div className="col-span-2">
-                <Label>URL da Foto</Label>
-                <div className="mt-1.5 flex items-center gap-3">
+                <Label>Foto do Produto</Label>
+                <div className="mt-1.5">
                   {form.image_url ? (
-                    <div className="relative">
-                      <img src={form.image_url} alt="preview" className="w-20 h-20 rounded-lg object-cover border border-border" />
-                      <button
-                        onClick={() => setForm(p => ({ ...p, image_url: '' }))}
-                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-destructive rounded-full flex items-center justify-center"
-                      >
-                        <X className="w-3 h-3 text-white" />
-                      </button>
+                    <div className="relative w-full h-36 rounded-xl overflow-hidden border border-border group">
+                      <img src={form.image_url} alt="preview" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          className="px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-white text-xs font-medium backdrop-blur-sm"
+                        >
+                          Trocar foto
+                        </button>
+                        <button
+                          onClick={() => { setForm(p => ({ ...p, image_url: '' })); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+                          className="px-3 py-1.5 bg-destructive/80 hover:bg-destructive rounded-lg text-white text-xs font-medium"
+                        >
+                          Remover
+                        </button>
+                      </div>
                     </div>
                   ) : (
-                    <div className="w-20 h-20 rounded-lg bg-secondary border border-dashed border-border flex items-center justify-center">
-                      <ImagePlus className="w-6 h-6 text-muted-foreground" />
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full h-36 rounded-xl border-2 border-dashed border-border bg-secondary hover:border-primary/50 hover:bg-primary/5 transition-all flex flex-col items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <ImagePlus className="w-8 h-8 text-muted-foreground" />
+                      <div className="text-center">
+                        <p className="text-sm font-medium text-foreground">Clique para adicionar foto</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">JPG, PNG ou WebP — máx. 5MB</p>
+                      </div>
+                    </button>
                   )}
-                  <Input
-                    value={form.image_url}
-                    onChange={e => setForm(p => ({ ...p, image_url: e.target.value }))}
-                    placeholder="https://..."
-                    className="flex-1 bg-secondary border-border text-sm"
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    className="hidden"
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (file.size > 5 * 1024 * 1024) { alert('Imagem muito grande. Máximo 5MB.'); return; }
+                      const reader = new FileReader();
+                      reader.onload = ev => setForm(p => ({ ...p, image_url: ev.target.result }));
+                      reader.readAsDataURL(file);
+                    }}
                   />
                 </div>
               </div>

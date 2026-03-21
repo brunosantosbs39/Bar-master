@@ -65,3 +65,18 @@ export function useDeleteCategory() {
     onSuccess: () => qc.invalidateQueries({ queryKey: CATEGORY_KEY }),
   });
 }
+
+// Reordena produtos por sort_order — usa for sequencial (não Promise.all)
+// porque o servidor salva em products.json com read-modify-write: chamadas
+// concorrentes corrompem o arquivo por last-write-wins.
+export function useReorderProducts() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (updates) => {
+      for (const { id, sort_order } of updates) {
+        await localDB.entities.Product.update(id, { sort_order });
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: PRODUCT_KEY }),
+  });
+}

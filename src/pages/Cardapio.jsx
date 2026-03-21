@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { useProducts, useCustomCategories, useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/hooks/useProducts';
+import { useProducts, useCustomCategories, useCreateProduct, useUpdateProduct, useDeleteProduct, useReorderProducts } from '@/hooks/useProducts';
 import { useSettings, useUpdateSettings } from '@/hooks/useSettings';
 import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -39,6 +39,7 @@ export default function Cardapio() {
   const queryClient = useQueryClient();
   const { data: settings, isLoading: settingsLoading } = useSettings();
   const updateSettings = useUpdateSettings();
+  const reorderProducts = useReorderProducts();
 
   // Derivar allCategories respeitando category_order do settings
   const allCategories = useMemo(() => {

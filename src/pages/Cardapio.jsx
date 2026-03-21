@@ -140,16 +140,27 @@ export default function Cardapio() {
     if (destination.droppableId === source.droppableId && destination.index === source.index) return;
 
     if (type === 'CATEGORY') {
-      const currentOrder = allCategories.map(c => c.value);
-      const newOrder = [...currentOrder];
-      const [moved] = newOrder.splice(source.index, 1);
-      newOrder.splice(destination.index, 0, moved);
+      // Reordenar só entre as visíveis (índices contíguos)
+      const visibleOrder = visibleCategories.map(c => c.value);
+      const newVisibleOrder = [...visibleOrder];
+      const [moved] = newVisibleOrder.splice(source.index, 1);
+      newVisibleOrder.splice(destination.index, 0, moved);
+
+      // Reconstruir a ordem completa: substituir os valores visíveis pela nova ordem
+      const fullOrder = allCategories.map(c => c.value);
+      const newFullOrder = [...fullOrder];
+      let visibleIdx = 0;
+      for (let i = 0; i < newFullOrder.length; i++) {
+        if (visibleOrder.includes(newFullOrder[i])) {
+          newFullOrder[i] = newVisibleOrder[visibleIdx++];
+        }
+      }
 
       const previousSettings = queryClient.getQueryData(['settings']);
-      queryClient.setQueryData(['settings'], (old) => ({ ...old, category_order: newOrder }));
+      queryClient.setQueryData(['settings'], (old) => ({ ...old, category_order: newFullOrder }));
 
       updateSettings.mutate(
-        { category_order: newOrder },
+        { category_order: newFullOrder },
         {
           onError: () => {
             queryClient.setQueryData(['settings'], previousSettings);
@@ -169,19 +180,9 @@ export default function Cardapio() {
 
       const updates = newItems.map((p, i) => ({ id: p.id, sort_order: i }));
 
-      const productsQueryKey = ['products', {}];
-      const previousProducts = queryClient.getQueryData(productsQueryKey);
-      queryClient.setQueryData(productsQueryKey, (old) => {
-        if (!Array.isArray(old)) return old;
-        return old.map(p => {
-          const upd = updates.find(u => u.id === p.id);
-          return upd ? { ...p, sort_order: upd.sort_order } : p;
-        });
-      });
-
       reorderProducts.mutate(updates, {
         onError: () => {
-          queryClient.setQueryData(productsQueryKey, previousProducts);
+          queryClient.invalidateQueries({ queryKey: ['products'] });
           toast.error('Falha ao salvar ordem dos produtos. Tente novamente.');
         },
       });
@@ -205,6 +206,9 @@ export default function Cardapio() {
     if (items.length) acc[cat.value] = { label: cat.label, items };
     return acc;
   }, {});
+
+  // Categorias visíveis = só as que têm produtos na view atual (índices contíguos para @hello-pangea/dnd)
+  const visibleCategories = allCategories.filter(cat => !!grouped[cat.value]);
 
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto">
@@ -290,9 +294,8 @@ export default function Cardapio() {
                 <Droppable droppableId="categories" type="CATEGORY" isDropDisabled={!canDrag}>
                   {(provided) => (
                     <div ref={provided.innerRef} {...provided.droppableProps}>
-                      {allCategories.map((cat, index) => {
-                        const catData = grouped[cat.value];
-                        if (!catData) return null;
+                      {visibleCategories.map((cat, index) => {
+                        const catData = grouped[cat.value]; // sempre definido
                         return (
                           <Draggable
                             key={cat.value}

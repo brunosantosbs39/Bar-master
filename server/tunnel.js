@@ -56,7 +56,7 @@ export async function startTunnel(vitePort) {
         _tunnelUrl = match[0];
         console.log('   Tunel ativo: ' + _tunnelUrl);
         console.log('   QR Code funciona em qualquer celular (dados moveis)');
-        registerWithWorker(_tunnelUrl);
+        registerWithWorker(_tunnelUrl); // fire-and-forget: tunnel is ready regardless of Worker registration
         resolve();
       }
     };
@@ -97,6 +97,10 @@ async function registerWithWorker(tunnelUrl) {
   const workerUrl = process.env.WORKER_URL;
   const workerSecret = process.env.WORKER_SECRET;
   if (!workerUrl || !workerSecret) return;
+  if (!workerUrl.startsWith('https://')) {
+    console.log('   WORKER_URL deve usar HTTPS. Registro ignorado.');
+    return;
+  }
 
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
@@ -111,6 +115,10 @@ async function registerWithWorker(tunnelUrl) {
       if (res.ok) {
         console.log('   🌐 Worker registrado: URL permanente ativa');
         console.log('   ' + workerUrl + '/menu');
+        return;
+      }
+      if (res.status >= 400 && res.status < 500) {
+        console.log(`   Worker: erro ${res.status}. Verifique WORKER_SECRET.`);
         return;
       }
     } catch (_e) { /* tenta novamente */ }

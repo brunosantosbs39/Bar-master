@@ -16,12 +16,31 @@ export function ensureWorkerConfig() {
     const content = readFileSync(ENV_PATH, 'utf8');
     const match = content.match(/^WORKER_SECRET=(.+)$/m);
     if (match && match[1].trim()) return;
+
+    // .env existe mas WORKER_SECRET está ausente ou vazio — fazer patch
+    const secret = randomUUID();
+    let patched = content;
+    if (/^WORKER_SECRET=/m.test(patched)) {
+      patched = patched.replace(/^WORKER_SECRET=.*$/m, `WORKER_SECRET=${secret}`);
+    } else {
+      patched = patched.trimEnd() + `\nWORKER_SECRET=${secret}\n`;
+    }
+    if (!/^WORKER_URL=/m.test(patched)) {
+      patched = `WORKER_URL=\n` + patched;
+    }
+    writeFileSync(ENV_PATH, patched);
+    printSetupInstructions(secret);
+    return;
   }
 
+  // .env não existe — criar do zero
   const secret = randomUUID();
   const envContent = `# Cloudflare Workers URL Broker\nWORKER_URL=\nWORKER_SECRET=${secret}\n`;
   writeFileSync(ENV_PATH, envContent);
+  printSetupInstructions(secret);
+}
 
+function printSetupInstructions(secret) {
   console.log('\n====================================================');
   console.log('SETUP NECESSÁRIO — Cloudflare Workers URL Broker');
   console.log('====================================================');

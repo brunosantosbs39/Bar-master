@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useCustomCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from '@/hooks/useProducts';
+import { useSettings, useUpdateSettings } from '@/hooks/useSettings';
 import { useQueryClient } from '@tanstack/react-query';
 import { localDB } from '@/lib/localDB';
 import { Plus, Pencil, Trash2, ToggleRight, ToggleLeft } from 'lucide-react';
@@ -17,6 +18,8 @@ export default function CategoriesManager({ onCategoriesChange }) {
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
   const deleteCategory = useDeleteCategory();
+  const { data: settings } = useSettings();
+  const updateSettings = useUpdateSettings();
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -52,14 +55,28 @@ export default function CategoriesManager({ onCategoriesChange }) {
     if (editing) {
       await updateCategory.mutateAsync({ id: editing.id, data });
     } else {
-      await createCategory.mutateAsync(data);
+      const result = await createCategory.mutateAsync(data);
+      // Adicionar nova categoria ao final de category_order
+      if (settings?.category_order) {
+        const newCatValue = data.value || result?.value;
+        if (newCatValue) {
+          const newOrder = [...settings.category_order, newCatValue];
+          updateSettings.mutate({ category_order: newOrder });
+        }
+      }
     }
     setShowForm(false);
     onCategoriesChange && onCategoriesChange();
   };
 
   const handleDelete = async (id) => {
+    const cat = custom.find(c => c.id === id);
     await deleteCategory.mutateAsync(id);
+    // Remover categoria deletada do category_order (somente custom — built-in nunca são deletadas)
+    if (cat && settings?.category_order) {
+      const newOrder = settings.category_order.filter(v => v !== cat.value);
+      updateSettings.mutate({ category_order: newOrder });
+    }
     onCategoriesChange && onCategoriesChange();
   };
 

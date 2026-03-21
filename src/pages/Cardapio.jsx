@@ -1,5 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useProducts, useCustomCategories, useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/hooks/useProducts';
+import { useSettings, useUpdateSettings } from '@/hooks/useSettings';
+import { useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import { Plus, Pencil, Trash2, Search, ToggleLeft, ToggleRight, ImagePlus, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,17 +36,50 @@ export default function Cardapio() {
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
   const deleteProductMutation = useDeleteProduct();
+  const queryClient = useQueryClient();
+  const { data: settings, isLoading: settingsLoading } = useSettings();
+  const updateSettings = useUpdateSettings();
 
-  const allCategories = [
-    ...BUILTIN_CATEGORIES,
-    ...customCategories
+  // Derivar allCategories respeitando category_order do settings
+  const allCategories = useMemo(() => {
+    const customActive = customCategories
       .filter(c => c.active)
       .map(c => ({
         value: c.value,
         label: `${c.emoji || '🏷️'} ${c.label}`,
-        print_dept: c.print_dept || 'bar'
-      }))
-  ];
+        print_dept: c.print_dept || 'bar',
+      }));
+
+    const base = [
+      ...BUILTIN_CATEGORIES.map(c => ({ value: c.value, label: c.label, print_dept: c.print_dept })),
+      ...customActive,
+    ];
+
+    if (!settings?.category_order) return base;
+
+    const baseValues = base.map(c => c.value);
+    // Filtrar stale values (categorias que foram deletadas)
+    const validOrder = settings.category_order.filter(v => baseValues.includes(v));
+    // Adicionar ao final categorias novas que ainda não estão na order salva
+    const missing = baseValues.filter(v => !validOrder.includes(v));
+    const finalOrder = [...validOrder, ...missing];
+    return finalOrder.map(v => base.find(c => c.value === v)).filter(Boolean);
+  }, [settings, customCategories]);
+
+  // Guard para disparar a inicialização apenas uma vez
+  const categoryOrderInitialized = useRef(false);
+
+  // Inicializar category_order no settings se ainda não existir.
+  // Aguarda ambas as queries resolverem para não perder categorias custom.
+  useEffect(() => {
+    if (settingsLoading || loading) return;
+    if (categoryOrderInitialized.current) return;
+    if (settings && !settings.category_order && allCategories.length > 0) {
+      categoryOrderInitialized.current = true;
+      const initialOrder = allCategories.map(c => c.value);
+      updateSettings.mutate({ category_order: initialOrder });
+    }
+  }, [settingsLoading, loading, settings, allCategories]);
 
   const openCreate = () => {
     const firstCat = allCategories[0]?.value || 'cervejas';

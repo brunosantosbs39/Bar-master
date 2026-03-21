@@ -8,6 +8,7 @@
 //   GET  /status    → retorna URL atual e timestamp (requer token)
 
 const TUNNEL_URL_KEY = 'tunnel_url';
+const TUNNEL_UPDATED_AT_KEY = 'tunnel_url_updated_at';
 const TUNNEL_URL_TTL = 8 * 60 * 60; // 8 horas em segundos
 const URL_PATTERN = /^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/;
 
@@ -48,7 +49,7 @@ async function handleRegister(request, env) {
   }
 
   await env.TUNNEL_URL.put(TUNNEL_URL_KEY, body.url, { expirationTtl: TUNNEL_URL_TTL });
-  await env.TUNNEL_URL.put('tunnel_url_updated_at', new Date().toISOString());
+  await env.TUNNEL_URL.put(TUNNEL_UPDATED_AT_KEY, new Date().toISOString());
 
   return jsonResponse({ ok: true, url: body.url });
 }
@@ -57,6 +58,7 @@ async function handleDeregister(request, env) {
   if (!isAuthorized(request, env)) return jsonResponse({ error: 'Unauthorized' }, 401);
 
   await env.TUNNEL_URL.delete(TUNNEL_URL_KEY);
+  await env.TUNNEL_URL.delete(TUNNEL_UPDATED_AT_KEY);
 
   return jsonResponse({ ok: true });
 }
@@ -65,7 +67,7 @@ async function handleStatus(request, env) {
   if (!isAuthorized(request, env)) return jsonResponse({ error: 'Unauthorized' }, 401);
 
   const tunnelUrl = await env.TUNNEL_URL.get(TUNNEL_URL_KEY);
-  const updatedAt = await env.TUNNEL_URL.get('tunnel_url_updated_at');
+  const updatedAt = await env.TUNNEL_URL.get(TUNNEL_UPDATED_AT_KEY);
 
   return jsonResponse({ url: tunnelUrl, updated_at: updatedAt, active: !!tunnelUrl });
 }
@@ -84,7 +86,7 @@ async function handleRedirect(env, suffix) {
   <p>O sistema está offline no momento.</p>
   <p>Por favor, tente novamente em instantes.</p>
 </body></html>`;
-    return new Response(html, { status: 503, headers: { 'Content-Type': 'text/html;charset=UTF-8' } });
+    return new Response(html, { status: 503, headers: { 'Content-Type': 'text/html;charset=UTF-8', 'Cache-Control': 'no-store' } });
   }
 
   return Response.redirect(tunnelUrl + suffix, 302);

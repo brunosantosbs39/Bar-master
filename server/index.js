@@ -1,5 +1,9 @@
-// server/index.js — BarMaster API Server
+// server/index.js — Empório Pires API Server
 // Roda no PC e serve todos os dispositivos na mesma rede WiFi
+
+import 'dotenv/config';
+import { ensureWorkerConfig } from './setup.js';
+ensureWorkerConfig();
 
 import express from 'express';
 import cors from 'cors';
@@ -7,6 +11,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import os from 'os';
+import { startTunnel, getTunnelUrl } from './tunnel.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = join(__dirname, 'data');
@@ -18,7 +23,18 @@ app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 
 // ── Entidades disponíveis ────────────────────────────────────────────────────
-const ENTITIES = ['tables', 'orders', 'products', 'custom_categories', 'waiters', 'stock', 'cashiers', 'settings'];
+const ENTITIES = ['tables', 'orders', 'products', 'custom_categories', 'waiters', 'stock', 'cashiers', 'settings', 'admin_users'];
+
+// ── Login de Admin (registrado antes do CRUD genérico) ─────────────────────
+app.post('/api/admin_users/login', (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) return res.status(400).json({ error: 'Dados incompletos' });
+  const users = readAll('admin_users');
+  const user = users.find(u => u.username === username && u.password === password && u.active !== false);
+  if (!user) return res.status(401).json({ error: 'Usuário ou senha incorretos' });
+  const { password: _pwd, ...safeUser } = user;
+  res.json(safeUser);
+});
 
 // ── Helpers de arquivo ────────────────────────────────────────────────────────
 function readAll(entity) {
@@ -121,6 +137,35 @@ app.delete('/api/backup', async (req, res) => {
   res.json({ ok: true });
 });
 
+// ── Endpoint: IP local da máquina ────────────────────────────────────────────
+app.get('/api/local-ip', (req, res) => {
+  res.json({ ip: getLocalIP() });
+});
+
+// ── URL pública do túnel (localtunnel ou cloudflare) ─────────────────────────
+
+app.get('/api/public-url', (req, res) => {
+  // 1. Worker URL permanente (se configurado) — strip trailing slash para evitar /menu/menu
+  const workerUrl = (process.env.WORKER_URL || '').replace(/\/$/, '');
+  if (workerUrl) return res.json({ url: workerUrl });
+
+  // 2. URL do tunnel em memória
+  const tunnelUrl = getTunnelUrl();
+  if (tunnelUrl) return res.json({ url: tunnelUrl });
+
+  // 3. Legado: cloudflare.log
+  const logFile = join(__dirname, '..', 'cloudflare.log');
+  if (existsSync(logFile)) {
+    try {
+      const content = readFileSync(logFile, 'utf8');
+      const match = content.match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/);
+      if (match) return res.json({ url: match[0] });
+    } catch { /* ignora */ }
+  }
+
+  res.json({ url: null });
+});
+
 // ── IP local para exibir ao usuário ──────────────────────────────────────────
 function getLocalIP() {
   const interfaces = os.networkInterfaces();
@@ -134,16 +179,20 @@ function getLocalIP() {
 
 // ── Inicialização ─────────────────────────────────────────────────────────────
 const PORT = 3001;
+const VITE_PORT = 5173;
 
 app.listen(PORT, '0.0.0.0', async () => {
   const ip = getLocalIP();
-  console.log('\n🍺 BarMaster Server iniciado!\n');
-  console.log(`   PC (admin):  http://localhost:5173`);
-  console.log(`   📱 Garçons:  http://${ip}:5173\n`);
+  console.log('\n🍺 Empório Pires Server iniciado!\n');
+  console.log(`   PC (admin):  http://localhost:${VITE_PORT}`);
+  console.log(`   📱 Rede Wi-Fi:  http://${ip}:${VITE_PORT}\n`);
 
   // Seed automático na primeira execução
   if (readAll('tables').length === 0) {
     const { seed } = await import('./seed.js');
     seed();
   }
+
+  // ── Túnal público (cloudflared sem tela de senha) ───────────────────
+  await startTunnel(VITE_PORT);
 });

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { localDB } from '@/lib/localDB';
+import { useBranding } from '@/lib/useBranding';
 import { Search, X, ChevronRight, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -29,7 +30,10 @@ const categoryBg = {
 };
 
 export default function MenuPublico() {
+  const { bannerUrl } = useBranding();
   const [products, setProducts] = useState([]);
+  const [categoryOrder, setCategoryOrder] = useState([]);
+  const [banners, setBanners] = useState([]);
   const [table, setTable] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('todos');
@@ -49,6 +53,13 @@ export default function MenuPublico() {
     setLoading(true);
     const prods = await localDB.entities.Product.filter({ available: true });
     setProducts(prods);
+    const settingsList = await localDB.entities.Settings.filter({});
+    const s = settingsList[0] || {};
+    if (Array.isArray(s.category_order)) setCategoryOrder(s.category_order);
+    try {
+      const allBanners = await localDB.entities.Banner.filter({ active: true });
+      setBanners(allBanners.sort((a, b) => (a.order || 0) - (b.order || 0)));
+    } catch { /* ignore */ }
     if (tableId) {
       const tables = await localDB.entities.Table.filter({ id: tableId });
       if (tables.length > 0) setTable(tables[0]);
@@ -56,7 +67,10 @@ export default function MenuPublico() {
     setLoading(false);
   };
 
-  const categories = [...new Set(products.map(p => p.category))];
+  const rawCategories = [...new Set(products.map(p => p.category))];
+  const categories = categoryOrder.length > 0
+    ? [...categoryOrder.filter(c => rawCategories.includes(c)), ...rawCategories.filter(c => !categoryOrder.includes(c))]
+    : rawCategories;
 
   const filtered = products.filter(p => {
     const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase()) || (p.description || '').toLowerCase().includes(search.toLowerCase());
@@ -95,6 +109,15 @@ export default function MenuPublico() {
   return (
     <div className="min-h-screen bg-[#080503] text-white max-w-lg mx-auto relative">
 
+      {/* Banner topo */}
+      <div style={{ lineHeight: 0 }}>
+        <img
+          src={bannerUrl}
+          alt="Banner do estabelecimento"
+          style={{ width: '100%', display: 'block' }}
+        />
+      </div>
+
       {/* Hero Header */}
       <div className="relative overflow-hidden bg-gradient-to-b from-amber-950/80 via-[#0f0804] to-[#080503] pt-10 pb-6 px-5">
         <div className="absolute inset-0 opacity-10" style={{
@@ -122,7 +145,8 @@ export default function MenuPublico() {
               value={search}
               onChange={e => { setSearch(e.target.value); setActiveCategory('todos'); }}
               placeholder="Buscar no cardápio..."
-              className="w-full pl-10 pr-9 py-3 rounded-2xl bg-white/8 border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-amber-500/60 focus:bg-white/10 transition-all"
+              className="w-full pl-10 pr-9 py-3 rounded-2xl border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-amber-500/60 transition-all"
+              style={{ backgroundColor: 'rgba(255,255,255,0.08)', colorScheme: 'dark', WebkitAppearance: 'none' }}
             />
             {search && (
               <button onClick={() => setSearch('')} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors">
@@ -151,8 +175,31 @@ export default function MenuPublico() {
         </div>
       )}
 
+      {/* Banners dinâmicos */}
+      {banners.length > 0 && (
+        <div className="mx-4 mt-4 space-y-3">
+          {banners.map(b => (
+            <div
+              key={b.id}
+              className="rounded-xl overflow-hidden"
+              style={{ backgroundColor: b.bg_color || '#1a1a2e' }}
+            >
+              {b.image_url && (
+                <img src={b.image_url} alt={b.title} className="w-full object-contain" />
+              )}
+              {(b.title || b.subtitle) && (
+                <div className="px-5 py-3">
+                  <p className="font-bold text-base leading-tight" style={{ color: b.text_color || '#fff' }}>{b.title}</p>
+                  {b.subtitle && <p className="text-sm opacity-80 mt-0.5" style={{ color: b.text_color || '#fff' }}>{b.subtitle}</p>}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Banner aviso */}
-      <div className="mx-4 mt-4 px-4 py-2.5 rounded-xl bg-amber-500/8 border border-amber-500/15 text-xs text-amber-300/70 text-center">
+      <div className="mx-4 mt-3 px-4 py-2.5 rounded-xl bg-amber-500/8 border border-amber-500/15 text-xs text-amber-300/70 text-center">
         Chame o garçom para fazer seu pedido 😊
       </div>
 
@@ -165,7 +212,7 @@ export default function MenuPublico() {
           </div>
         )}
 
-        {Object.entries(grouped).map(([cat, items]) => (
+        {categories.filter(cat => grouped[cat]).map(cat => { const items = grouped[cat]; return (
           <div key={cat} ref={el => categoryRefs.current[cat] = el}>
             {/* Category Header */}
             <div className={`flex items-center gap-3 mb-4 px-4 py-3 rounded-2xl bg-gradient-to-r ${categoryBg[cat] || 'from-white/5 to-transparent'} border border-white/5`}>
@@ -189,7 +236,7 @@ export default function MenuPublico() {
               ))}
             </div>
           </div>
-        ))}
+        );})}
       </div>
 
       {/* Product Detail Modal */}
@@ -272,12 +319,13 @@ function ProductModal({ product, onClose }) {
         className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40"
         onClick={onClose}
       />
+      <div className="fixed inset-x-0 bottom-0 z-50 flex justify-center">
       <motion.div
         initial={{ opacity: 0, y: 60 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 60 }}
         transition={{ type: 'spring', damping: 28, stiffness: 400 }}
-        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg bg-[#111008] rounded-t-3xl z-50 shadow-2xl max-h-[85vh] flex flex-col"
+        className="w-full max-w-lg bg-[#111008] rounded-t-3xl shadow-2xl max-h-[85vh] flex flex-col"
       >
         {/* Product image */}
         {product.image_url ? (
@@ -328,6 +376,7 @@ function ProductModal({ product, onClose }) {
           </button>
         </div>
       </motion.div>
+      </div>
     </>
   );
 }

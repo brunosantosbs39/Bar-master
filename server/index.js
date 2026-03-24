@@ -102,17 +102,6 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
   res.json({ url: `/${filename}` });
 });
 
-// Tratamento de erro do multer
-app.use((err, _req, res, _next) => {
-  if (err.message === 'Tipo de arquivo não permitido') {
-    return res.status(400).json({ error: err.message });
-  }
-  if (err.code === 'LIMIT_FILE_SIZE') {
-    return res.status(400).json({ error: 'Arquivo muito grande. Máximo 5MB.' });
-  }
-  res.status(500).json({ error: err.message });
-});
-
 // ── Rotas CRUD genéricas ──────────────────────────────────────────────────────
 ENTITIES.forEach(entity => {
   const route = `/api/${entity}`;
@@ -227,13 +216,24 @@ function getLocalIP() {
   return 'localhost';
 }
 
+// ── Error handler global (deve vir após todas as rotas) ──────────────────────
+app.use((err, _req, res, _next) => {
+  if (err.message === 'Tipo de arquivo não permitido') {
+    return res.status(400).json({ error: err.message });
+  }
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(400).json({ error: 'Arquivo muito grande. Máximo 5MB.' });
+  }
+  res.status(500).json({ error: err.message });
+});
+
 // ── Inicialização ─────────────────────────────────────────────────────────────
 const PORT = 3001;
 const VITE_PORT = 5173;
 
 app.listen(PORT, '0.0.0.0', async () => {
   const ip = getLocalIP();
-  console.log('\n🍺 Empório Pires Server iniciado!\n');
+  console.log('\n🍺 BarMaster Server iniciado!\n');
   console.log(`   PC (admin):  http://localhost:${VITE_PORT}`);
   console.log(`   📱 Rede Wi-Fi:  http://${ip}:${VITE_PORT}\n`);
 

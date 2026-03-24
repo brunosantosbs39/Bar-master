@@ -5,8 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Eye, EyeOff, Lock } from 'lucide-react';
+import { useBranding } from '@/lib/useBranding';
 
 export default function GarcomLogin() {
+  const { barName } = useBranding();
   const [waiters, setWaiters] = useState([]);
   const [selected, setSelected] = useState(null);
   const [password, setPassword] = useState('');
@@ -42,7 +44,7 @@ export default function GarcomLogin() {
         {/* Logo */}
         <div className="text-center">
           <div className="text-5xl mb-3">🍺</div>
-          <h1 className="text-2xl font-black text-foreground">BarMaster</h1>
+          <h1 className="text-2xl font-black text-foreground">{barName}</h1>
           <p className="text-sm text-muted-foreground mt-1">Acesso do Garçom</p>
         </div>
 
@@ -112,9 +114,9 @@ export default function GarcomLogin() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground">
-          Proprietário?{' '}
-          <button onClick={() => navigate('/Mesas')} className="text-primary hover:underline">
-            Acessar sistema completo
+          Proprietário / Admin?{' '}
+          <button onClick={() => navigate('/AdminLogin')} className="text-primary hover:underline">
+            Acesso completo
           </button>
         </p>
       </div>

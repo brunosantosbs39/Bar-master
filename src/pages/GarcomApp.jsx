@@ -2,10 +2,13 @@ import { useState, useEffect } from 'react';
 import { localDB } from '@/lib/localDB';
 import { useWaiterSession } from '@/lib/WaiterSessionContext';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Users, Clock, ShoppingBag, LogOut, ArrowLeft } from 'lucide-react';
+import { Plus, Users, Clock, ShoppingBag, LogOut, Shield, Check, X, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
+import { QRCodeSVG } from 'qrcode.react';
+import { useMenuUrl } from '@/lib/useMenuUrl';
+import { useBranding } from '@/lib/useBranding';
 import TableSummaryModal from '@/components/TableSummaryModal';
 import GarcomComanda from '@/components/GarcomComanda';
 
@@ -21,6 +24,88 @@ const typeConfig = {
   delivery: { label: 'Delivery', icon: '🛵' },
 };
 
+const DEFAULT_PERMS = {
+  can_send_to_kitchen: true,
+  can_close_order: true,
+  can_print_bill: true,
+  can_cancel_order: false,
+  can_apply_discount: false,
+  can_transfer_table: false,
+};
+
+const PERM_LABELS = {
+  can_send_to_kitchen: 'Enviar pedido',
+  can_close_order:     'Fechar comanda',
+  can_print_bill:      'Imprimir conta',
+  can_cancel_order:    'Cancelar comanda',
+  can_apply_discount:  'Dar desconto',
+  can_transfer_table:  'Transferir mesa',
+};
+
+function PermissoesBadge({ waiter }) {
+  const [open, setOpen] = useState(false);
+  const perms = { ...DEFAULT_PERMS, ...(waiter?.permissions || {}) };
+  const ativos = Object.values(perms).filter(Boolean).length;
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary border border-border text-xs text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <Shield className="w-3.5 h-3.5" />
+        {ativos}/{Object.keys(perms).length} permissões
+      </button>
+      {open && (
+        <div className="absolute right-0 top-8 z-50 w-56 rounded-xl border border-border bg-card shadow-xl p-3 space-y-1.5">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Suas permissões</p>
+          {Object.entries(PERM_LABELS).map(([key, label]) => {
+            const allowed = perms[key];
+            return (
+              <div key={key} className={`flex items-center gap-2 text-xs px-2 py-1.5 rounded-lg ${allowed ? 'text-emerald-400 bg-emerald-500/10' : 'text-muted-foreground/50 bg-secondary'}`}>
+                {allowed ? <Check className="w-3.5 h-3.5 shrink-0" /> : <X className="w-3.5 h-3.5 shrink-0" />}
+                {label}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function QRModal({ open, onClose }) {
+  const menuUrl = useMenuUrl();
+  const { barName } = useBranding();
+  if (!open) return null;
+  return (
+    <div
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 p-6"
+      onClick={onClose}
+    >
+      <div
+        className="flex flex-col items-center gap-5 bg-white rounded-3xl p-8 max-w-xs w-full"
+        onClick={e => e.stopPropagation()}
+      >
+        <p className="text-black font-black text-xl text-center">{barName}</p>
+        <QRCodeSVG
+          value={menuUrl}
+          size={220}
+          level="M"
+          includeMargin={false}
+        />
+        <p className="text-gray-500 text-sm text-center">Escaneie para ver o cardápio</p>
+        <button
+          onClick={onClose}
+          className="w-full py-3 rounded-xl bg-gray-900 text-white font-bold text-sm"
+        >
+          Fechar
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function GarcomApp() {
   const { waiter, logout } = useWaiterSession();
   const navigate = useNavigate();
@@ -29,6 +114,7 @@ export default function GarcomApp() {
   const [loading, setLoading] = useState(true);
   const [summaryTable, setSummaryTable] = useState(null);
   const [activeOrder, setActiveOrder] = useState(null);
+  const [showQR, setShowQR] = useState(false);
 
   useEffect(() => {
     if (!waiter) { navigate('/GarcomLogin'); return; }
@@ -89,6 +175,14 @@ export default function GarcomApp() {
           <p className="font-bold text-foreground text-sm">Olá, {waiter.nickname || waiter.name.split(' ')[0]}!</p>
           <p className="text-xs text-muted-foreground">Suas mesas</p>
         </div>
+        <PermissoesBadge waiter={waiter} />
+        <button
+          onClick={() => setShowQR(true)}
+          className="text-muted-foreground hover:text-foreground transition-colors p-2"
+          title="Mostrar QR Code do cardápio"
+        >
+          <QrCode className="w-4 h-4" />
+        </button>
         <button onClick={handleLogout} className="text-muted-foreground hover:text-foreground transition-colors p-2">
           <LogOut className="w-4 h-4" />
         </button>
@@ -168,6 +262,8 @@ export default function GarcomApp() {
           </div>
         )}
       </div>
+
+      <QRModal open={showQR} onClose={() => setShowQR(false)} />
 
       <TableSummaryModal
         table={summaryTable}

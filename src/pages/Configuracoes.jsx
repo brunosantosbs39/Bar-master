@@ -485,7 +485,7 @@ export default function Configuracoes() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `emporiopires-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `${(brandName || 'barmaster').toLowerCase().replace(/\s+/g, '-')}-backup-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };

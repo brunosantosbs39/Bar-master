@@ -110,13 +110,15 @@ export default function MenuPublico() {
     <div className="min-h-screen bg-[#080503] text-white max-w-lg mx-auto relative">
 
       {/* Banner topo */}
-      <div style={{ lineHeight: 0 }}>
-        <img
-          src={bannerUrl}
-          alt="Banner do estabelecimento"
-          style={{ width: '100%', display: 'block' }}
-        />
-      </div>
+      {bannerUrl && (
+        <div style={{ lineHeight: 0 }}>
+          <img
+            src={bannerUrl}
+            alt="Banner do estabelecimento"
+            style={{ width: '100%', display: 'block' }}
+          />
+        </div>
+      )}
 
       {/* Hero Header */}
       <div className="relative overflow-hidden bg-gradient-to-b from-amber-950/80 via-[#0f0804] to-[#080503] pt-10 pb-6 px-5">

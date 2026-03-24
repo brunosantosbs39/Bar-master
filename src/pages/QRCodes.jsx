@@ -2,12 +2,11 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Download, QrCode, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useBranding } from '@/lib/useBranding';
-
-const MENU_URL = 'https://cardapio-emporiopires.emporiopires.workers.dev/menu';
+import { useMenuUrl } from '@/lib/useMenuUrl';
 
 export default function QRCodes() {
   const { barName } = useBranding();
-  const menuUrl = MENU_URL;
+  const menuUrl = useMenuUrl();
 
   const downloadQR = () => {
     const svg = document.getElementById('qr-unico');

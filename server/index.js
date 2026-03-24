@@ -1,4 +1,4 @@
-// server/index.js — Empório Pires API Server
+// server/index.js — BarMaster API Server
 // Roda no PC e serve todos os dispositivos na mesma rede WiFi
 
 import 'dotenv/config';
@@ -7,23 +7,37 @@ try { ensureWorkerConfig(); } catch (e) { console.warn('Worker config setup falh
 
 import express from 'express';
 import cors from 'cors';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
-import { join, dirname } from 'path';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, unlinkSync } from 'fs';
+import { join, dirname, extname } from 'path';
+import multer from 'multer';
 import { fileURLToPath } from 'url';
 import os from 'os';
 import { startTunnel, getTunnelUrl } from './tunnel.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = join(__dirname, 'data');
+const PUBLIC_DIR = join(__dirname, '../public');
+if (!existsSync(PUBLIC_DIR)) mkdirSync(PUBLIC_DIR, { recursive: true });
 
 if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
+
+// ── Upload de imagens (logo e banner) ────────────────────────────────────────
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (_req, file, cb) => {
+    const allowed = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
+    if (allowed.includes(file.mimetype)) cb(null, true);
+    else cb(new Error('Tipo de arquivo não permitido'));
+  },
+});
 
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 
 // ── Entidades disponíveis ────────────────────────────────────────────────────
-const ENTITIES = ['tables', 'orders', 'products', 'custom_categories', 'waiters', 'stock', 'cashiers', 'settings', 'admin_users'];
+const ENTITIES = ['tables', 'orders', 'products', 'custom_categories', 'waiters', 'stock', 'cashiers', 'settings', 'admin_users', 'banners'];
 
 // ── Login de Admin (registrado antes do CRUD genérico) ─────────────────────
 app.post('/api/admin_users/login', (req, res) => {
@@ -62,6 +76,42 @@ function matchFilter(item, filters) {
     return String(val) === String(v);
   });
 }
+
+// ── Upload de logo/banner ─────────────────────────────────────────────────────
+app.post('/api/upload', upload.single('file'), (req, res) => {
+  const { type } = req.body;
+  if (!type || !['logo', 'banner'].includes(type)) {
+    return res.status(400).json({ error: 'Parâmetro type deve ser "logo" ou "banner"' });
+  }
+  if (!req.file) {
+    return res.status(400).json({ error: 'Arquivo não enviado' });
+  }
+
+  // Remove arquivos anteriores do mesmo tipo
+  try {
+    const existing = readdirSync(PUBLIC_DIR).filter(f => f.startsWith(`${type}-cliente`));
+    existing.forEach(f => unlinkSync(join(PUBLIC_DIR, f)));
+  } catch { /* ignora se não houver */ }
+
+  // Salva com timestamp para cache-busting
+  const ext = extname(req.file.originalname) || (req.file.mimetype === 'image/webp' ? '.webp' : '.png');
+  const filename = `${type}-cliente-${Date.now()}${ext}`;
+  const filepath = join(PUBLIC_DIR, filename);
+  writeFileSync(filepath, req.file.buffer);
+
+  res.json({ url: `/${filename}` });
+});
+
+// Tratamento de erro do multer
+app.use((err, _req, res, _next) => {
+  if (err.message === 'Tipo de arquivo não permitido') {
+    return res.status(400).json({ error: err.message });
+  }
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(400).json({ error: 'Arquivo muito grande. Máximo 5MB.' });
+  }
+  res.status(500).json({ error: err.message });
+});
 
 // ── Rotas CRUD genéricas ──────────────────────────────────────────────────────
 ENTITIES.forEach(entity => {

@@ -33,3 +33,10 @@ dist-ssr
 # Cloudflare Worker
 !.env.example
 worker/.wrangler/
+
+# Binaries and Installers
+*.exe
+*.msi
+cf-extract/
+.superpowers/
+

@@ -7,15 +7,25 @@ function generateId() {
 }
 
 async function apiFetch(path, options = {}) {
-  const res = await fetch(path, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`API ${path} → ${res.status}: ${text}`);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 12000);
+  try {
+    const res = await fetch(path, {
+      headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
+      ...options,
+    });
+    clearTimeout(timer);
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`API ${path} → ${res.status}: ${text}`);
+    }
+    return res.json();
+  } catch (e) {
+    clearTimeout(timer);
+    if (e.name === 'AbortError') throw new Error(`Servidor não respondeu (${path}). Verifique a conexão.`);
+    throw e;
   }
-  return res.json();
 }
 
 function makeEntity(name) {
@@ -56,6 +66,7 @@ export const localDB = {
     Stock:          makeEntity('stock'),
     Cashier:        makeEntity('cashiers'),
     Settings:       makeEntity('settings'),
+    Banner:         makeEntity('banners'),
   },
   // Mantidos por compatibilidade — não fazem mais nada (limpeza é no servidor)
   purgeOldOrders: () => Promise.resolve(),

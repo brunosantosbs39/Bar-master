@@ -123,13 +123,20 @@ export default function GarcomApp() {
 
   const loadData = async () => {
     setLoading(true);
-    const [t, o] = await Promise.all([
-      localDB.entities.Table.filter({ active: true }),
-      localDB.entities.Order.filter({ status: 'aberta' })
-    ]);
-    setTables(t);
-    setOrders(o);
-    setLoading(false);
+    try {
+      // Busca status em duas requisições separadas para garantir compatibilidade
+      const [t, oAberta, oFechamento] = await Promise.all([
+        localDB.entities.Table.filter({ active: true }),
+        localDB.entities.Order.filter({ status: 'aberta' }),
+        localDB.entities.Order.filter({ status: 'em_recebimento' }),
+      ]);
+      setTables(t);
+      setOrders([...oAberta, ...oFechamento]);
+    } catch (e) {
+      console.error('[GarcomApp] Erro ao carregar mesas:', e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getTableOrder = (tableId) => orders.find(o => o.table_id === tableId);
@@ -178,13 +185,19 @@ export default function GarcomApp() {
         <PermissoesBadge waiter={waiter} />
         <button
           onClick={() => setShowQR(true)}
-          className="text-muted-foreground hover:text-foreground transition-colors p-2"
+          className="w-14 h-14 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-muted-foreground hover:text-foreground hover:bg-secondary active:bg-secondary/70 transition-all"
           title="Mostrar QR Code do cardápio"
         >
-          <QrCode className="w-4 h-4" />
+          <QrCode className="w-6 h-6" />
+          <span className="text-[9px] font-medium leading-none">QR Code</span>
         </button>
-        <button onClick={handleLogout} className="text-muted-foreground hover:text-foreground transition-colors p-2">
-          <LogOut className="w-4 h-4" />
+        <button
+          onClick={handleLogout}
+          className="w-14 h-14 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-muted-foreground hover:text-foreground hover:bg-secondary active:bg-secondary/70 transition-all"
+          title="Sair"
+        >
+          <LogOut className="w-6 h-6" />
+          <span className="text-[9px] font-medium leading-none">Sair</span>
         </button>
       </div>
 
@@ -206,6 +219,7 @@ export default function GarcomApp() {
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {items.map((table, i) => {
                       const order = getTableOrder(table.id);
+                      const isEmFechamento = order?.status === 'em_recebimento';
                       const status = order ? 'ocupada' : table.status;
                       const cfg = statusConfig[status] || statusConfig.livre;
                       return (
@@ -216,27 +230,37 @@ export default function GarcomApp() {
                           transition={{ delay: i * 0.04 }}
                           onClick={() => openTable(table)}
                           className={`relative cursor-pointer rounded-xl p-4 border-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-xl ${
-                            status === 'ocupada'
+                            isEmFechamento
+                              ? 'border-purple-500/70 bg-purple-500/10 shadow-purple-500/10 shadow-md'
+                              : status === 'ocupada'
                               ? 'border-amber-500/70 bg-amber-500/10 shadow-amber-500/10 shadow-md'
                               : 'border-emerald-500/40 bg-emerald-500/5 hover:border-emerald-500/60'
                           }`}
                         >
                           <div className={`absolute top-3 right-3 w-2.5 h-2.5 rounded-full ${
+                            isEmFechamento ? 'bg-purple-400 animate-pulse' :
                             status === 'ocupada' ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'
                           }`} />
                           <div className="mb-2">
-                            <span className={`text-2xl font-black ${status === 'ocupada' ? 'text-amber-300' : 'text-emerald-300'}`}>
+                            <span className={`text-2xl font-black ${
+                              isEmFechamento ? 'text-purple-300' :
+                              status === 'ocupada' ? 'text-amber-300' : 'text-emerald-300'
+                            }`}>
                               {type === 'delivery' ? `#${table.number}` : table.number}
                             </span>
                           </div>
-                          <Badge className={`text-xs border mb-2 ${cfg.color}`}>{cfg.label}</Badge>
+                          {isEmFechamento ? (
+                            <Badge className="text-xs border mb-2 bg-purple-500/15 text-purple-400 border-purple-500/30">🔒 Fechamento</Badge>
+                          ) : (
+                            <Badge className={`text-xs border mb-2 ${cfg.color}`}>{cfg.label}</Badge>
+                          )}
                           {table.capacity && (
                             <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                               <Users className="w-3 h-3" /><span>{table.capacity} lug.</span>
                             </div>
                           )}
                           {order && (
-                            <div className="flex items-center gap-1 text-xs text-amber-400 mt-1 font-semibold">
+                            <div className={`flex items-center gap-1 text-xs mt-1 font-semibold ${isEmFechamento ? 'text-purple-400' : 'text-amber-400'}`}>
                               <ShoppingBag className="w-3 h-3" />
                               <span>R$ {(order.total || 0).toFixed(2)}</span>
                             </div>

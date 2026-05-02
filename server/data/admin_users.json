@@ -1,0 +1,33 @@
+[
+  {
+    "name": "Propriet�rio",
+    "username": "adm",
+    "password": "8408",
+    "role": "proprietario",
+    "active": true,
+    "id": "1773962769268-ng619wt",
+    "created_at": "2026-03-19T23:26:09.268Z",
+    "updated_at": "2026-03-19T23:26:09.268Z"
+  },
+  {
+    "name": "caixa",
+    "username": "caixa",
+    "password": "1234",
+    "role": "caixa",
+    "active": true,
+    "permissions": {
+      "pages": [
+        "Caixa",
+        "Mesas",
+        "Relatorios",
+        "Cardapio",
+        "QRCodes"
+      ],
+      "can_manage_users": false,
+      "can_manage_waiters": false
+    },
+    "id": "1773971018770-9o2ckpw",
+    "created_at": "2026-03-20T01:43:38.769Z",
+    "updated_at": "2026-03-20T01:44:37.890Z"
+  }
+]

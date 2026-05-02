@@ -4,15 +4,15 @@
     "turno": "noite",
     "operador": "Admin",
     "saldo_inicial": 150,
-    "aberto_em": "2026-03-18T20:29:00.550Z",
-    "fechado_em": "2026-03-19T19:29:00.550Z",
+    "aberto_em": "2026-03-18T22:30:14.382Z",
+    "fechado_em": "2026-03-19T21:30:14.382Z",
     "movimentacoes": [
       {
         "id": "1",
         "tipo": "sangria",
         "valor": 50,
         "motivo": "Troco",
-        "hora": "2026-03-18T20:29:00.550Z",
+        "hora": "2026-03-18T22:30:14.382Z",
         "operador": "Admin"
       }
     ],
@@ -29,8 +29,651 @@
     "saldo_esperado": 420,
     "saldo_real": 415,
     "diferenca": -5,
-    "id": "1773952140550-5k2nkkk",
-    "created_at": "2026-03-19T20:29:00.550Z",
-    "updated_at": "2026-03-19T20:29:00.550Z"
+    "id": "1773959414383-qqesqj0",
+    "created_at": "2026-03-19T22:30:14.383Z",
+    "updated_at": "2026-03-19T22:30:14.383Z"
+  },
+  {
+    "status": "fechado",
+    "turno": "manha",
+    "operador": "caixa",
+    "saldo_inicial": 0,
+    "aberto_em": "2026-03-22T01:30:52.087Z",
+    "fechado_em": "2026-03-22T14:55:25.198Z",
+    "movimentacoes": [],
+    "linked_order_ids": [],
+    "resumo_pagamentos": {
+      "dinheiro": 0,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 0,
+    "total_itens": 0,
+    "saldo_esperado": 0,
+    "saldo_real": 0,
+    "diferenca": 0,
+    "id": "1774143052401-p9itugd",
+    "created_at": "2026-03-22T01:30:52.401Z",
+    "updated_at": "2026-03-22T14:55:25.241Z"
+  },
+  {
+    "status": "fechado",
+    "turno": "manha",
+    "operador": "caixa",
+    "saldo_inicial": 50,
+    "aberto_em": "2026-03-22T14:55:43.581Z",
+    "fechado_em": "2026-03-24T19:20:30.909Z",
+    "movimentacoes": [],
+    "linked_order_ids": [],
+    "resumo_pagamentos": {
+      "dinheiro": 0,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 0,
+    "total_itens": 0,
+    "saldo_esperado": 50,
+    "saldo_real": 50,
+    "diferenca": 0,
+    "id": "1774191343587-vuqk4id",
+    "created_at": "2026-03-22T14:55:43.587Z",
+    "updated_at": "2026-03-24T19:20:30.952Z"
+  },
+  {
+    "status": "fechado",
+    "turno": "noite",
+    "operador": "caixa",
+    "saldo_inicial": 0,
+    "aberto_em": "2026-03-24T19:21:03.992Z",
+    "fechado_em": "2026-03-29T19:35:22.634Z",
+    "movimentacoes": [],
+    "linked_order_ids": [],
+    "resumo_pagamentos": {
+      "dinheiro": 0,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 0,
+    "total_itens": 0,
+    "saldo_esperado": 0,
+    "saldo_real": 0,
+    "diferenca": 0,
+    "id": "1774380063995-tpnge5k",
+    "created_at": "2026-03-24T19:21:03.995Z",
+    "updated_at": "2026-03-29T19:35:22.685Z"
+  },
+  {
+    "status": "fechado",
+    "turno": "manha",
+    "operador": "bruno",
+    "saldo_inicial": 0,
+    "aberto_em": "2026-04-02T00:27:14.868Z",
+    "fechado_em": "2026-04-02T19:57:07.474Z",
+    "movimentacoes": [],
+    "linked_order_ids": [],
+    "resumo_pagamentos": {
+      "dinheiro": 0,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 0,
+    "total_itens": 0,
+    "saldo_esperado": 0,
+    "saldo_real": 71,
+    "diferenca": 71,
+    "id": "1775089634872-abkyubd",
+    "created_at": "2026-04-02T00:27:14.872Z",
+    "updated_at": "2026-04-02T19:57:07.532Z"
+  },
+  {
+    "status": "fechado",
+    "turno": "noite",
+    "operador": "bruno",
+    "saldo_inicial": 0,
+    "aberto_em": "2026-04-02T19:57:24.815Z",
+    "fechado_em": "2026-04-06T19:36:03.041Z",
+    "movimentacoes": [],
+    "linked_order_ids": [],
+    "resumo_pagamentos": {
+      "dinheiro": 0,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 0,
+    "total_itens": 0,
+    "saldo_esperado": 0,
+    "saldo_real": 0,
+    "diferenca": 0,
+    "id": "1775159844819-6abn7iu",
+    "created_at": "2026-04-02T19:57:24.819Z",
+    "updated_at": "2026-04-06T19:36:03.109Z"
+  },
+  {
+    "status": "fechado",
+    "turno": "manha",
+    "operador": "0",
+    "saldo_inicial": 0,
+    "aberto_em": "2026-04-06T19:36:07.503Z",
+    "fechado_em": "2026-04-08T19:17:37.894Z",
+    "movimentacoes": [],
+    "linked_order_ids": [
+      "1775591312055-mz32rw4"
+    ],
+    "resumo_pagamentos": {
+      "dinheiro": 258,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 1,
+    "total_itens": 6,
+    "saldo_esperado": 258,
+    "saldo_real": 0,
+    "diferenca": -258,
+    "id": "1775504167507-6byi929",
+    "created_at": "2026-04-06T19:36:07.507Z",
+    "updated_at": "2026-04-08T19:17:37.948Z"
+  },
+  {
+    "status": "fechado",
+    "turno": "noite",
+    "operador": "bruno",
+    "saldo_inicial": 0,
+    "aberto_em": "2026-04-08T19:18:00.367Z",
+    "fechado_em": "2026-04-10T13:50:23.206Z",
+    "movimentacoes": [],
+    "linked_order_ids": [
+      "1775596262117-h4gpolg",
+      "1774732203922-62hd1d6",
+      "1775781799477-nn6fkuc"
+    ],
+    "resumo_pagamentos": {
+      "dinheiro": 126.80000000000001,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 3,
+    "total_itens": 4,
+    "saldo_esperado": 126.8,
+    "saldo_real": 0,
+    "diferenca": -126.8,
+    "id": "1775675880387-f5nx5bz",
+    "created_at": "2026-04-08T19:18:00.386Z",
+    "updated_at": "2026-04-10T13:50:23.252Z"
+  },
+  {
+    "status": "fechado",
+    "turno": "tarde",
+    "operador": "bruno",
+    "saldo_inicial": 0,
+    "aberto_em": "2026-04-10T13:50:33.933Z",
+    "fechado_em": "2026-04-11T13:15:34.435Z",
+    "movimentacoes": [],
+    "linked_order_ids": [
+      "1775836570093-d8bga61"
+    ],
+    "resumo_pagamentos": {
+      "dinheiro": 365,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 1,
+    "total_itens": 10,
+    "saldo_esperado": 365,
+    "saldo_real": 0,
+    "diferenca": -365,
+    "id": "1775829033936-u551ohv",
+    "created_at": "2026-04-10T13:50:33.936Z",
+    "updated_at": "2026-04-11T13:15:34.492Z"
+  },
+  {
+    "status": "fechado",
+    "turno": "noite",
+    "operador": "bruno",
+    "saldo_inicial": 0,
+    "aberto_em": "2026-04-11T13:15:52.946Z",
+    "fechado_em": "2026-04-13T20:04:33.057Z",
+    "movimentacoes": [],
+    "linked_order_ids": [
+      "1775918053257-3qdunk5",
+      "1776004071392-2qf1kqe"
+    ],
+    "resumo_pagamentos": {
+      "dinheiro": 1446.5,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 2,
+    "total_itens": 41,
+    "saldo_esperado": 1446.5,
+    "saldo_real": 0,
+    "diferenca": -1446.5,
+    "id": "1775913352976-r8xpyh4",
+    "created_at": "2026-04-11T13:15:52.975Z",
+    "updated_at": "2026-04-13T20:04:33.130Z"
+  },
+  {
+    "status": "fechado",
+    "turno": "noite",
+    "operador": "bruno",
+    "saldo_inicial": 0,
+    "aberto_em": "2026-04-13T20:04:45.601Z",
+    "fechado_em": "2026-04-14T20:28:32.453Z",
+    "movimentacoes": [],
+    "linked_order_ids": [
+      "1776114608000-t4d929c"
+    ],
+    "resumo_pagamentos": {
+      "dinheiro": 159.8,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 1,
+    "total_itens": 4,
+    "saldo_esperado": 159.8,
+    "saldo_real": 0,
+    "diferenca": -159.8,
+    "id": "1776110685606-mjpwx8y",
+    "created_at": "2026-04-13T20:04:45.605Z",
+    "updated_at": "2026-04-14T20:28:32.496Z"
+  },
+  {
+    "status": "fechado",
+    "turno": "noite",
+    "operador": "bruno",
+    "saldo_inicial": 0,
+    "aberto_em": "2026-04-14T20:28:43.457Z",
+    "fechado_em": "2026-04-15T01:48:10.243Z",
+    "movimentacoes": [],
+    "linked_order_ids": [
+      "1776213067386-cdjbgv0"
+    ],
+    "resumo_pagamentos": {
+      "dinheiro": 93,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 1,
+    "total_itens": 3,
+    "saldo_esperado": 93,
+    "saldo_real": 0,
+    "diferenca": -93,
+    "id": "1776198523461-tpd6l8o",
+    "created_at": "2026-04-14T20:28:43.461Z",
+    "updated_at": "2026-04-15T01:48:10.299Z"
+  },
+  {
+    "status": "fechado",
+    "turno": "noite",
+    "operador": "bruno",
+    "saldo_inicial": 0,
+    "aberto_em": "2026-04-15T19:52:19.210Z",
+    "fechado_em": "2026-04-16T02:04:18.750Z",
+    "movimentacoes": [],
+    "linked_order_ids": [
+      "1776301107563-rqsf36x"
+    ],
+    "resumo_pagamentos": {
+      "dinheiro": 67,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 1,
+    "total_itens": 2,
+    "saldo_esperado": 67,
+    "saldo_real": 0,
+    "diferenca": -67,
+    "id": "1776282739532-hyl2j2m",
+    "created_at": "2026-04-15T19:52:19.532Z",
+    "updated_at": "2026-04-16T02:04:18.794Z"
+  },
+  {
+    "status": "fechado",
+    "turno": "noite",
+    "operador": "bruno",
+    "saldo_inicial": 0,
+    "aberto_em": "2026-04-16T19:38:48.933Z",
+    "fechado_em": "2026-04-17T17:07:00.174Z",
+    "movimentacoes": [],
+    "linked_order_ids": [
+      "1776368333730-pamac3a"
+    ],
+    "resumo_pagamentos": {
+      "dinheiro": 75,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 1,
+    "total_itens": 3,
+    "saldo_esperado": 75,
+    "saldo_real": 0,
+    "diferenca": -75,
+    "id": "1776368329243-l9nyjqk",
+    "created_at": "2026-04-16T19:38:49.243Z",
+    "updated_at": "2026-04-17T17:07:00.216Z"
+  },
+  {
+    "status": "fechado",
+    "turno": "tarde",
+    "operador": "bruno",
+    "saldo_inicial": 0,
+    "aberto_em": "2026-04-17T17:07:10.242Z",
+    "fechado_em": "2026-04-19T13:42:16.566Z",
+    "movimentacoes": [],
+    "linked_order_ids": [
+      "1776449262345-149bejv",
+      "1776461357107-b8646vd",
+      "1776479517761-6km5uwx",
+      "1776521228512-wpymp1y"
+    ],
+    "resumo_pagamentos": {
+      "dinheiro": 936.3,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 4,
+    "total_itens": 31,
+    "saldo_esperado": 936.3,
+    "saldo_real": 0,
+    "diferenca": -936.3,
+    "id": "1776445630246-k0585gd",
+    "created_at": "2026-04-17T17:07:10.246Z",
+    "updated_at": "2026-04-19T13:42:16.607Z"
+  },
+  {
+    "status": "fechado",
+    "turno": "manha",
+    "operador": "bruno",
+    "saldo_inicial": 0,
+    "aberto_em": "2026-04-19T13:42:24.672Z",
+    "fechado_em": "2026-04-20T19:28:57.339Z",
+    "movimentacoes": [],
+    "linked_order_ids": [
+      "1776612838724-10c58o1"
+    ],
+    "resumo_pagamentos": {
+      "dinheiro": 366.9,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 1,
+    "total_itens": 11,
+    "saldo_esperado": 366.9,
+    "saldo_real": 0,
+    "diferenca": -366.9,
+    "id": "1776606144680-rzfe8li",
+    "created_at": "2026-04-19T13:42:24.680Z",
+    "updated_at": "2026-04-20T19:28:57.401Z"
+  },
+  {
+    "status": "fechado",
+    "turno": "tarde",
+    "operador": "bruno",
+    "saldo_inicial": 0,
+    "aberto_em": "2026-04-20T19:29:09.185Z",
+    "fechado_em": "2026-04-22T03:26:23.017Z",
+    "movimentacoes": [],
+    "linked_order_ids": [
+      "1776725497585-hnrsq2g",
+      "1776782386953-2c0vey4"
+    ],
+    "resumo_pagamentos": {
+      "dinheiro": 1134.2,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 2,
+    "total_itens": 31,
+    "saldo_esperado": 1134.2,
+    "saldo_real": 0,
+    "diferenca": -1134.2,
+    "id": "1776713349202-enk8p1h",
+    "created_at": "2026-04-20T19:29:09.201Z",
+    "updated_at": "2026-04-22T03:26:23.272Z"
+  },
+  {
+    "status": "fechado",
+    "turno": "manha",
+    "operador": "bruno",
+    "saldo_inicial": 0,
+    "aberto_em": "2026-04-24T14:22:55.242Z",
+    "fechado_em": "2026-04-25T03:42:51.969Z",
+    "movimentacoes": [],
+    "linked_order_ids": [
+      "1777046781556-x8jktfa"
+    ],
+    "resumo_pagamentos": {
+      "dinheiro": 447.9,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 1,
+    "total_itens": 12,
+    "saldo_esperado": 447.9,
+    "saldo_real": 0,
+    "diferenca": -447.9,
+    "id": "1777040575556-mju7lcj",
+    "created_at": "2026-04-24T14:22:55.556Z",
+    "updated_at": "2026-04-25T03:42:52.028Z"
+  },
+  {
+    "status": "fechado",
+    "turno": "manha",
+    "operador": "bruno",
+    "saldo_inicial": 0,
+    "aberto_em": "2026-04-25T14:06:00.037Z",
+    "fechado_em": "2026-04-26T14:15:19.007Z",
+    "movimentacoes": [],
+    "linked_order_ids": [
+      "1777126458770-ittvxa3"
+    ],
+    "resumo_pagamentos": {
+      "dinheiro": 573.6999999999999,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 1,
+    "total_itens": 20,
+    "saldo_esperado": 573.7,
+    "saldo_real": 0,
+    "diferenca": -573.7,
+    "id": "1777125960348-c05qozs",
+    "created_at": "2026-04-25T14:06:00.348Z",
+    "updated_at": "2026-04-26T14:15:19.048Z"
+  },
+  {
+    "status": "fechado",
+    "turno": "manha",
+    "operador": "bruno",
+    "saldo_inicial": 0,
+    "aberto_em": "2026-04-26T14:15:27.620Z",
+    "fechado_em": "2026-04-27T14:50:09.741Z",
+    "movimentacoes": [],
+    "linked_order_ids": [
+      "1777214457671-6vypimd"
+    ],
+    "resumo_pagamentos": {
+      "dinheiro": 484.9,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 1,
+    "total_itens": 17,
+    "saldo_esperado": 484.9,
+    "saldo_real": 0,
+    "diferenca": -484.9,
+    "id": "1777212927624-hb52836",
+    "created_at": "2026-04-26T14:15:27.624Z",
+    "updated_at": "2026-04-27T14:50:09.978Z"
+  },
+  {
+    "status": "fechado",
+    "turno": "manha",
+    "operador": "bruno",
+    "saldo_inicial": 0,
+    "aberto_em": "2026-04-27T23:11:46.730Z",
+    "fechado_em": "2026-04-28T02:11:09.712Z",
+    "movimentacoes": [],
+    "linked_order_ids": [
+      "1777331511880-bw9uffm"
+    ],
+    "resumo_pagamentos": {
+      "dinheiro": 71,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 1,
+    "total_itens": 2,
+    "saldo_esperado": 71,
+    "saldo_real": 0,
+    "diferenca": -71,
+    "id": "1777331506739-gw4opvs",
+    "created_at": "2026-04-27T23:11:46.739Z",
+    "updated_at": "2026-04-28T02:11:09.768Z"
+  },
+  {
+    "status": "fechado",
+    "turno": "manha",
+    "operador": "bruno",
+    "saldo_inicial": 0,
+    "aberto_em": "2026-04-28T19:40:49.896Z",
+    "fechado_em": "2026-04-29T14:37:36.985Z",
+    "movimentacoes": [],
+    "linked_order_ids": [
+      "1777422549683-f9hiv5u"
+    ],
+    "resumo_pagamentos": {
+      "dinheiro": 107.9,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 1,
+    "total_itens": 4,
+    "saldo_esperado": 107.9,
+    "saldo_real": 0,
+    "diferenca": -107.9,
+    "id": "1777405250207-oa5zwjh",
+    "created_at": "2026-04-28T19:40:50.207Z",
+    "updated_at": "2026-04-29T14:37:37.014Z"
+  },
+  {
+    "status": "fechado",
+    "turno": "tarde",
+    "operador": "bruno",
+    "saldo_inicial": 0,
+    "aberto_em": "2026-04-29T19:31:13.101Z",
+    "fechado_em": "2026-04-30T20:55:25.349Z",
+    "movimentacoes": [],
+    "linked_order_ids": [
+      "1777582492387-85mc2jp"
+    ],
+    "resumo_pagamentos": {
+      "dinheiro": 49.9,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 1,
+    "total_itens": 1,
+    "saldo_esperado": 49.9,
+    "saldo_real": 0,
+    "diferenca": -49.9,
+    "id": "1777491073424-7s8asy1",
+    "created_at": "2026-04-29T19:31:13.424Z",
+    "updated_at": "2026-04-30T20:55:25.391Z"
+  },
+  {
+    "status": "fechado",
+    "turno": "noite",
+    "operador": "bruno",
+    "saldo_inicial": 0,
+    "aberto_em": "2026-04-30T20:55:36.168Z",
+    "fechado_em": "2026-05-01T02:08:27.740Z",
+    "movimentacoes": [],
+    "linked_order_ids": [
+      "1777583260871-4osxlgc"
+    ],
+    "resumo_pagamentos": {
+      "dinheiro": 343,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 1,
+    "total_itens": 9,
+    "saldo_esperado": 343,
+    "saldo_real": 0,
+    "diferenca": -343,
+    "id": "1777582536172-561ii3m",
+    "created_at": "2026-04-30T20:55:36.172Z",
+    "updated_at": "2026-05-01T02:08:28.008Z"
+  },
+  {
+    "status": "aberto",
+    "turno": "tarde",
+    "operador": "bruno",
+    "saldo_inicial": 0,
+    "aberto_em": "2026-05-01T17:32:00.006Z",
+    "fechado_em": null,
+    "movimentacoes": [],
+    "linked_order_ids": [],
+    "resumo_pagamentos": {
+      "dinheiro": 0,
+      "pix": 0,
+      "cartao_credito": 0,
+      "cartao_debito": 0,
+      "misto": 0
+    },
+    "total_comandas": 0,
+    "total_itens": 0,
+    "saldo_esperado": 0,
+    "saldo_real": 0,
+    "diferenca": 0,
+    "id": "1777656720326-acwywlr",
+    "created_at": "2026-05-01T17:32:00.323Z",
+    "updated_at": "2026-05-01T17:32:00.323Z"
   }
 ]

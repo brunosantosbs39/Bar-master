@@ -1,0 +1,35 @@
+[
+  {
+    "value": "pratos_executivos",
+    "label": "Pratos Executivos",
+    "emoji": "🍽️",
+    "print_dept": "cozinha",
+    "active": true,
+    "order": 10,
+    "id": "1774115770138-10d3g84",
+    "created_at": "2026-03-21T17:56:10.138Z",
+    "updated_at": "2026-03-22T02:07:03.674Z"
+  },
+  {
+    "value": "cerveja_1l",
+    "label": "Cerveja 1L",
+    "emoji": "🍺",
+    "print_dept": "bar",
+    "active": true,
+    "order": 11,
+    "id": "1774128395699-jl5sh7y",
+    "created_at": "2026-03-21T21:26:35.699Z",
+    "updated_at": "2026-03-21T21:26:35.699Z"
+  },
+  {
+    "value": "marmitex",
+    "label": "Marmitex",
+    "emoji": "🍽️",
+    "print_dept": "cozinha",
+    "active": true,
+    "order": 12,
+    "id": "1774191386667-exjk0c2",
+    "created_at": "2026-03-22T14:56:26.667Z",
+    "updated_at": "2026-03-22T14:56:26.667Z"
+  }
+]

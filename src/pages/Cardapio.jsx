@@ -3,7 +3,7 @@ import { useProducts, useCustomCategories, useCreateProduct, useUpdateProduct, u
 import { useSettings, useUpdateSettings } from '@/hooks/useSettings';
 import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Plus, Pencil, Trash2, Search, ToggleLeft, ToggleRight, ImagePlus, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, ToggleLeft, ToggleRight, ImagePlus, X, ChevronDown, ChevronUp, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -125,6 +125,18 @@ export default function Cardapio() {
 
   const deleteProduct = async (id) => {
     await deleteProductMutation.mutateAsync(id);
+  };
+
+  const duplicateProduct = async (p) => {
+    // eslint-disable-next-line no-unused-vars
+    const { id, ...data } = p;
+    await createProduct.mutateAsync({
+      ...data,
+      name: `Cópia de ${p.name}`,
+      code: p.code ? `${p.code}-copia` : '',
+      available: false, // começa indisponível para revisão antes de publicar
+    });
+    toast.success(`"${p.name}" duplicado — revise e ative quando pronto`);
   };
 
   const toggleAvailable = async (p) => {
@@ -377,13 +389,16 @@ export default function Cardapio() {
 
                                               <div className="flex items-center gap-3">
                                                 <span className="font-bold text-primary text-sm whitespace-nowrap">R$ {p.price.toFixed(2)}</span>
-                                                <button onClick={() => toggleAvailable(p)} className="text-muted-foreground hover:text-foreground transition-colors">
+                                                <button onClick={() => toggleAvailable(p)} title={p.available ? 'Desativar' : 'Ativar'} className="text-muted-foreground hover:text-foreground transition-colors">
                                                   {p.available ? <ToggleRight className="w-5 h-5 text-emerald-400" /> : <ToggleLeft className="w-5 h-5" />}
                                                 </button>
-                                                <button onClick={() => openEdit(p)} className="text-muted-foreground hover:text-foreground transition-colors">
+                                                <button onClick={() => duplicateProduct(p)} title="Duplicar produto" className="text-muted-foreground hover:text-blue-400 transition-colors">
+                                                  <Copy className="w-4 h-4" />
+                                                </button>
+                                                <button onClick={() => openEdit(p)} title="Editar produto" className="text-muted-foreground hover:text-foreground transition-colors">
                                                   <Pencil className="w-4 h-4" />
                                                 </button>
-                                                <button onClick={() => deleteProduct(p.id)} className="text-muted-foreground hover:text-destructive transition-colors">
+                                                <button onClick={() => deleteProduct(p.id)} title="Excluir produto" className="text-muted-foreground hover:text-destructive transition-colors">
                                                   <Trash2 className="w-4 h-4" />
                                                 </button>
                                               </div>

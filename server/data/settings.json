@@ -6,8 +6,46 @@
     "happy_hour_start": "17:00",
     "happy_hour_end": "19:00",
     "cashier_blocks_orders": false,
-    "id": "1773952140550-82jq23v",
-    "created_at": "2026-03-19T20:29:00.550Z",
-    "updated_at": "2026-03-19T20:29:00.550Z"
+    "id": "1773959414383-lw2wtk8",
+    "created_at": "2026-03-19T22:30:14.383Z",
+    "updated_at": "2026-04-08T01:02:05.393Z",
+    "category_order": [
+      "cervejas",
+      "destilados",
+      "drinks",
+      "vinhos",
+      "nao_alcoolicos",
+      "bebidas",
+      "cerveja_1l",
+      "pratos_executivos",
+      "pratos",
+      "sobremesas",
+      "petiscos",
+      "porcoes",
+      "marmitex"
+    ],
+    "bar_name": "Emporio pires",
+    "logo_url": "/logo-cliente-1774380234004.webp",
+    "banner_url": "/banner-cliente-1774380234261.webp",
+    "printers_config": {
+      "bar": {
+        "enabled": false,
+        "name": "",
+        "method": "browser",
+        "ip": "",
+        "port": "9100",
+        "model": "",
+        "printDensity": 4
+      },
+      "cozinha": {
+        "enabled": true,
+        "name": "EPSON TM-T20 Receipt",
+        "method": "winusb",
+        "ip": "EPSON TM-T20 Receipt",
+        "port": "9100",
+        "model": "TM-T20",
+        "printDensity": 8
+      }
+    }
   }
 ]

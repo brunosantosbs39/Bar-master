@@ -22,8 +22,9 @@ export default {
     if (request.method === 'POST' && path === '/register') return handleRegister(request, env);
     if (request.method === 'DELETE' && path === '/register') return handleDeregister(request, env);
     if (request.method === 'GET' && path === '/status') return handleStatus(request, env);
-    if (request.method === 'GET' && path === '/menu') return handleRedirect(env, '/menu');
-    if (request.method === 'GET' && path === '/') return handleRedirect(env, '');
+
+    // Redireciona qualquer rota GET para o túnel ativo
+    if (request.method === 'GET') return handleRedirect(env, path + url.search);
 
     return new Response('Not found', { status: 404 });
   },

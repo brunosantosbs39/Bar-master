@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { localDB } from '@/lib/localDB';
 import { useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, Plus, Minus, Send, Receipt, Check, X, StickyNote, Printer } from 'lucide-react';
+import { ChevronLeft, Plus, Minus, Send, Receipt, Check, X, StickyNote, Printer, ArrowRightLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,6 +12,9 @@ import { AnimatePresence, motion } from 'framer-motion';
 import ProductSelector from '@/components/ProductSelector';
 import { printAutoByDept, printCustomerBill } from '@/components/PrintTicket';
 import { deductStockForOrder } from '@/lib/stockUtils';
+import { linkOrderToCashier } from '@/hooks/useOrders';
+import CancelAuthModal from '@/components/CancelAuthModal';
+import TransferTableDialog from '@/components/TransferTableDialog';
 
 export default function MesaDetalhe({ table, existingOrder, onBack }) {
   const [order, setOrder] = useState(null);
@@ -21,6 +24,9 @@ export default function MesaDetalhe({ table, existingOrder, onBack }) {
   const [noteItem, setNoteItem] = useState(null);
   const [noteText, setNoteText] = useState('');
   const [sendingOrder, setSendingOrder] = useState(false);
+  const [showCancelAuth, setShowCancelAuth] = useState(false);
+  const [showTransfer, setShowTransfer] = useState(false);
+  const [serviceFeeEnabled, setServiceFeeEnabled] = useState(true); // toggle taxa 10%
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -32,37 +38,68 @@ export default function MesaDetalhe({ table, existingOrder, onBack }) {
     setProducts(prods);
 
     if (existingOrder) {
-      setOrder(existingOrder);
+      // Recarrega do servidor para garantir dados frescos
+      try {
+        const fresh = await localDB.entities.Order.get(existingOrder.id);
+        const loaded = fresh || existingOrder;
+        setOrder(loaded);
+        setServiceFeeEnabled(loaded.service_fee_enabled !== false);
+      } catch {
+        setOrder(existingOrder);
+        setServiceFeeEnabled(existingOrder.service_fee_enabled !== false);
+      }
     } else {
-      const newOrder = await localDB.entities.Order.create({
-        table_id: table.id,
-        table_number: table.number,
-        table_type: table.type,
-        status: 'aberta',
-        items: [],
-        subtotal: 0,
-        service_fee: 0,
-        total: 0,
-        opened_at: new Date().toISOString(),
-      });
-      await localDB.entities.Table.update(table.id, { status: 'ocupada' });
-      queryClient.invalidateQueries({ queryKey: ['tables'] });
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      setOrder(newOrder);
+      // Proteção: verifica se já existe comanda ativa para esta mesa antes de criar nova
+      const [abertas, emFechamento] = await Promise.all([
+        localDB.entities.Order.filter({ table_id: table.id, status: 'aberta' }),
+        localDB.entities.Order.filter({ table_id: table.id, status: 'em_recebimento' }),
+      ]);
+      const existente = [...abertas, ...emFechamento][0];
+
+      if (existente) {
+        setOrder(existente);
+        setServiceFeeEnabled(existente.service_fee_enabled !== false);
+      } else {
+        const newOrder = await localDB.entities.Order.create({
+          table_id: table.id,
+          table_number: table.number,
+          table_type: table.type,
+          status: 'aberta',
+          items: [],
+          subtotal: 0,
+          service_fee: 0,
+          total: 0,
+          opened_at: new Date().toISOString(),
+        });
+        await localDB.entities.Table.update(table.id, { status: 'ocupada' });
+        queryClient.invalidateQueries({ queryKey: ['tables'] });
+        queryClient.invalidateQueries({ queryKey: ['orders'] });
+        setOrder(newOrder);
+      }
     }
   };
 
-  const recalc = (items) => {
+  const recalc = (items, feeEnabled = serviceFeeEnabled) => {
     const subtotal = items.reduce((s, i) => s + i.total, 0);
-    const service_fee = subtotal * 0.1;
+    const service_fee = feeEnabled ? subtotal * 0.1 : 0;
     return { subtotal, service_fee, total: subtotal + service_fee };
   };
 
   const updateOrder = async (newItems) => {
     const totals = recalc(newItems);
-    const updated = { ...order, items: newItems, ...totals };
+    const updated = { ...order, items: newItems, ...totals, service_fee_enabled: serviceFeeEnabled };
     setOrder(updated);
-    await localDB.entities.Order.update(order.id, { items: newItems, ...totals });
+    await localDB.entities.Order.update(order.id, { items: newItems, ...totals, service_fee_enabled: serviceFeeEnabled });
+    queryClient.invalidateQueries({ queryKey: ['orders'] });
+  };
+
+  const toggleServiceFee = async () => {
+    const newEnabled = !serviceFeeEnabled;
+    setServiceFeeEnabled(newEnabled);
+    const totals = recalc(order.items || [], newEnabled);
+    const updated = { ...order, ...totals, service_fee_enabled: newEnabled };
+    setOrder(updated);
+    await localDB.entities.Order.update(order.id, { ...totals, service_fee_enabled: newEnabled });
     queryClient.invalidateQueries({ queryKey: ['orders'] });
   };
 
@@ -72,12 +109,14 @@ export default function MesaDetalhe({ table, existingOrder, onBack }) {
       const extraPrice = modifiers.reduce((s, m) => s + (m.price || 0), 0);
       const unitPrice = product.price + extraPrice;
       const modifierNames = modifiers.map(m => m.name).join(', ');
+      // Só mescla com item existente se ele ainda estiver pendente (não enviado)
       const existing = modifiers.length === 0
-        ? items.findIndex(i => i.product_id === product.id && !i.notes && !i.modifiers?.length)
+        ? items.findIndex(i => i.product_id === product.id && !i.notes && !i.modifiers?.length && i.status === 'pendente')
         : -1;
       if (existing >= 0) {
         items[existing] = { ...items[existing], quantity: items[existing].quantity + qty, total: (items[existing].quantity + qty) * items[existing].unit_price };
       } else {
+        // Cria novo item pendente — mesmo que já exista um enviado (para reimpressão)
         items.push({
           product_id: product.id,
           product_name: product.name,
@@ -107,16 +146,16 @@ export default function MesaDetalhe({ table, existingOrder, onBack }) {
     setSendingOrder(true);
     const items = buildItemsFromEntries(entries, order.items || []);
     const totals = recalc(items);
-    const updatedOrder = { ...order, items, ...totals };
+    const updatedOrder = { ...order, items, ...totals, service_fee_enabled: serviceFeeEnabled };
     setOrder(updatedOrder);
-    await localDB.entities.Order.update(order.id, { items, ...totals });
+    await localDB.entities.Order.update(order.id, { items, ...totals, service_fee_enabled: serviceFeeEnabled });
     const pending = items.filter(i => i.status === 'pendente');
     if (pending.length) printAutoByDept(updatedOrder, products, pending);
     const sentItems = items.map(i => i.status === 'pendente' ? { ...i, status: 'preparando' } : i);
     const sentTotals = recalc(sentItems);
     const finalOrder = { ...updatedOrder, items: sentItems, ...sentTotals };
     setOrder(finalOrder);
-    await localDB.entities.Order.update(order.id, { items: sentItems, ...sentTotals });
+    await localDB.entities.Order.update(order.id, { items: sentItems, ...sentTotals, service_fee_enabled: serviceFeeEnabled });
     queryClient.invalidateQueries({ queryKey: ['orders'] });
     setSendingOrder(false);
   };
@@ -138,22 +177,30 @@ export default function MesaDetalhe({ table, existingOrder, onBack }) {
 
   const sendToKitchenBar = async () => {
     setSendingOrder(true);
-    const pending = (order.items || []).filter(i => i.status === 'pendente');
-    if (pending.length) printAutoByDept(order, products, pending);
-    const updatedItems = (order.items || []).map(i => i.status === 'pendente' ? { ...i, status: 'preparando' } : i);
-    await updateOrder(updatedItems);
-    setSendingOrder(false);
+    try {
+      const pending = (order.items || []).filter(i => i.status === 'pendente');
+      if (pending.length) printAutoByDept(order, products, pending);
+      const updatedItems = (order.items || []).map(i => i.status === 'pendente' ? { ...i, status: 'preparando' } : i);
+      await updateOrder(updatedItems);
+    } finally {
+      setSendingOrder(false);
+    }
   };
 
-  const closeOrder = async (payMethod) => {
+  const closeOrder = async (payMethod, discountVal = 0) => {
+    const discount = Math.max(0, discountVal);
+    const finalTotal = Math.max(0, (order.subtotal || 0) + (order.service_fee || 0) - discount);
     await localDB.entities.Order.update(order.id, {
       status: 'fechada',
       payment_method: payMethod,
+      discount,
+      total: finalTotal,
       closed_at: new Date().toISOString(),
     });
     await Promise.all([
       localDB.entities.Table.update(order.table_id, { status: 'livre' }),
       deductStockForOrder(order),
+      linkOrderToCashier(order.id), // Vincula ao caixa aberto para histórico
     ]);
     queryClient.invalidateQueries({ queryKey: ['tables'] });
     queryClient.invalidateQueries({ queryKey: ['orders'] });
@@ -161,7 +208,9 @@ export default function MesaDetalhe({ table, existingOrder, onBack }) {
     onBack();
   };
 
-  const cancelOrder = async () => {
+  const cancelOrder = () => setShowCancelAuth(true);
+
+  const doCancelOrder = async () => {
     await localDB.entities.Order.update(order.id, { status: 'cancelada' });
     if (order.table_id) await localDB.entities.Table.update(order.table_id, { status: 'livre' });
     queryClient.invalidateQueries({ queryKey: ['tables'] });
@@ -192,6 +241,9 @@ export default function MesaDetalhe({ table, existingOrder, onBack }) {
             <h2 className="font-bold text-foreground">{tableLabel}</h2>
             <p className="text-xs text-muted-foreground">{order.items?.length || 0} itens</p>
           </div>
+          <Button size="sm" variant="outline" className="gap-1 text-blue-400 border-blue-500/30 hover:bg-blue-500/10" onClick={() => setShowTransfer(true)}>
+            <ArrowRightLeft className="w-4 h-4" /> Transferir
+          </Button>
           <Button size="sm" variant="outline" className="gap-1 text-destructive border-destructive/30 hover:bg-destructive/10" onClick={cancelOrder}>
             <X className="w-4 h-4" /> Cancelar
           </Button>
@@ -200,6 +252,14 @@ export default function MesaDetalhe({ table, existingOrder, onBack }) {
           </Button>
         </div>
       </div>
+
+      {/* Banner: em fechamento — aguardando baixa do caixa */}
+      {order.status === 'em_recebimento' && (
+        <div className="mx-4 mt-2 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-purple-500/15 border border-purple-500/40 text-purple-400 text-sm font-medium max-w-2xl mx-auto w-full">
+          <span>🔒</span>
+          <span>Conta impressa — aguardando fechamento pelo caixa. Confirme o pagamento e clique em Fechar.</span>
+        </div>
+      )}
 
       {/* Items */}
       <div className="flex-1 overflow-auto px-4 py-3 max-w-2xl mx-auto w-full">
@@ -252,8 +312,18 @@ export default function MesaDetalhe({ table, existingOrder, onBack }) {
         <div className="flex justify-between text-sm text-muted-foreground mb-1">
           <span>Subtotal</span><span>R$ {(order.subtotal || 0).toFixed(2)}</span>
         </div>
-        <div className="flex justify-between text-sm text-muted-foreground mb-1">
-          <span>Serviço (10%)</span><span>R$ {(order.service_fee || 0).toFixed(2)}</span>
+        <div className="flex justify-between text-sm text-muted-foreground mb-1 items-center">
+          <div className="flex items-center gap-2">
+            <span>Serviço (10%)</span>
+            <button
+              onClick={toggleServiceFee}
+              title={serviceFeeEnabled ? 'Desativar taxa de serviço' : 'Ativar taxa de serviço'}
+              className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors duration-200 focus:outline-none ${serviceFeeEnabled ? 'bg-primary' : 'bg-muted-foreground/30'}`}
+            >
+              <span className={`inline-block h-3 w-3 rounded-full bg-white shadow transition-transform duration-200 ${serviceFeeEnabled ? 'translate-x-3.5' : 'translate-x-0.5'}`} />
+            </button>
+          </div>
+          <span className={serviceFeeEnabled ? '' : 'line-through opacity-50'}>R$ {(order.service_fee || 0).toFixed(2)}</span>
         </div>
         <div className="flex justify-between font-bold text-foreground text-base border-t border-border pt-2 mb-3">
           <span>Total</span>
@@ -292,10 +362,35 @@ export default function MesaDetalhe({ table, existingOrder, onBack }) {
         onSend={addBulkAndSend}
       />
 
+      <TransferTableDialog
+        open={showTransfer}
+        onClose={() => setShowTransfer(false)}
+        order={order}
+        onTransferred={(newTable, transferMode, destOrder) => {
+          setShowTransfer(false);
+          if (transferMode === 'full' && !destOrder) {
+            // Mesa inteira → mesa livre: atualiza os dados da comanda local
+            setOrder(prev => ({ ...prev, table_id: newTable.id, table_number: newTable.number, table_type: newTable.type }));
+            queryClient.invalidateQueries({ queryKey: ['tables'] });
+          } else if (transferMode === 'full' && destOrder) {
+            // Mesa inteira → mesa ocupada (agrupou): comanda foi cancelada, volta para lista
+            queryClient.invalidateQueries({ queryKey: ['tables'] });
+            queryClient.invalidateQueries({ queryKey: ['orders'] });
+            onBack();
+          } else if (transferMode === 'items') {
+            // Itens específicos: recarrega para refletir os itens removidos
+            loadData();
+            queryClient.invalidateQueries({ queryKey: ['tables'] });
+            queryClient.invalidateQueries({ queryKey: ['orders'] });
+          }
+        }}
+      />
+
       <CloseOrderDialog
         open={showClose}
         onClose={() => setShowClose(false)}
         order={order}
+        serviceFeeEnabled={serviceFeeEnabled}
         onConfirm={closeOrder}
       />
 
@@ -309,11 +404,18 @@ export default function MesaDetalhe({ table, existingOrder, onBack }) {
           </div>
         </DialogContent>
       </Dialog>
+
+      <CancelAuthModal
+        open={showCancelAuth}
+        onClose={() => setShowCancelAuth(false)}
+        onConfirm={doCancelOrder}
+        label="comanda"
+      />
     </div>
   );
 }
 
-function CloseOrderDialog({ open, onClose, order, onConfirm }) {
+function CloseOrderDialog({ open, onClose, order, serviceFeeEnabled = true, onConfirm }) {
   const [payMethod, setPayMethod] = useState('dinheiro');
   const [discount, setDiscount] = useState('0');
   if (!order) return null;
@@ -329,8 +431,9 @@ function CloseOrderDialog({ open, onClose, order, onConfirm }) {
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>Subtotal</span><span>R$ {(order.subtotal || 0).toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Serviço (10%)</span><span>R$ {(order.service_fee || 0).toFixed(2)}</span>
+            <div className={`flex justify-between text-sm ${serviceFeeEnabled ? 'text-muted-foreground' : 'text-muted-foreground/40'}`}>
+              <span>Serviço (10%){!serviceFeeEnabled && ' (desativado)'}</span>
+              <span className={!serviceFeeEnabled ? 'line-through' : ''}>R$ {(order.service_fee || 0).toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-sm text-muted-foreground items-center">
               <span>Desconto</span>
@@ -359,7 +462,7 @@ function CloseOrderDialog({ open, onClose, order, onConfirm }) {
           </Button>
           <div className="flex gap-3">
             <Button variant="outline" className="flex-1" onClick={onClose}>Cancelar</Button>
-            <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700" onClick={() => onConfirm(payMethod)}>
+            <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700" onClick={() => onConfirm(payMethod, discountVal)}>
               <Check className="w-4 h-4 mr-1" /> Confirmar
             </Button>
           </div>

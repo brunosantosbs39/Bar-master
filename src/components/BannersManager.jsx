@@ -1,42 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { localDB } from '@/lib/localDB';
-import { Plus, Pencil, Trash2, ImagePlus, X, ToggleRight, ToggleLeft } from 'lucide-react';
+import { Plus, Pencil, Trash2, ImagePlus, X, ToggleRight, ToggleLeft, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
-const BANNER_ENTITY = 'banners';
 const emptyBanner = { title: '', subtitle: '', image_url: '', bg_color: '#1a1a2e', text_color: '#ffffff', active: true, order: 0 };
 
-// Using localDB with a custom banners collection
 const BannerDB = {
-  list: () => localDB.entities.Settings.list().then(() => {
-    try {
-      const raw = localStorage.getItem('bm_banners');
-      return raw ? JSON.parse(raw) : [];
-    } catch { return []; }
-  }),
-  create: (data) => {
-    const items = JSON.parse(localStorage.getItem('bm_banners') || '[]');
-    const now = new Date().toISOString();
-    const item = { ...data, id: `${Date.now()}-${Math.random().toString(36).slice(2,9)}`, created_at: now, updated_at: now };
-    items.push(item);
-    localStorage.setItem('bm_banners', JSON.stringify(items));
-    return Promise.resolve(item);
-  },
-  update: (id, data) => {
-    const items = JSON.parse(localStorage.getItem('bm_banners') || '[]');
-    const idx = items.findIndex(i => i.id === id);
-    if (idx !== -1) { items[idx] = { ...items[idx], ...data, updated_at: new Date().toISOString() }; }
-    localStorage.setItem('bm_banners', JSON.stringify(items));
-    return Promise.resolve(items[idx]);
-  },
-  delete: (id) => {
-    const items = JSON.parse(localStorage.getItem('bm_banners') || '[]').filter(i => i.id !== id);
-    localStorage.setItem('bm_banners', JSON.stringify(items));
-    return Promise.resolve();
-  },
+  list: () => localDB.entities.Banner.list(),
+  create: (data) => localDB.entities.Banner.create(data),
+  update: (id, data) => localDB.entities.Banner.update(id, data),
+  delete: (id) => localDB.entities.Banner.delete(id),
 };
 
 export default function BannersManager() {
@@ -163,26 +139,42 @@ export default function BannersManager() {
             </div>
 
             <div>
-              <Label>URL da Imagem</Label>
+              <Label>Imagem do Banner</Label>
               <div className="mt-1.5 flex items-center gap-3">
                 {form.image_url ? (
-                  <div className="relative">
+                  <div className="relative flex-shrink-0">
                     <img src={form.image_url} alt="preview" className="w-20 h-16 rounded-lg object-cover border border-border" />
                     <button onClick={() => setForm(p => ({ ...p, image_url: '' }))} className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-destructive rounded-full flex items-center justify-center">
                       <X className="w-3 h-3 text-white" />
                     </button>
                   </div>
                 ) : (
-                  <div className="w-20 h-16 rounded-lg bg-secondary border border-dashed border-border flex items-center justify-center">
+                  <div className="w-20 h-16 rounded-lg bg-secondary border border-dashed border-border flex items-center justify-center flex-shrink-0">
                     <ImagePlus className="w-5 h-5 text-muted-foreground" />
                   </div>
                 )}
-                <Input
-                  placeholder="https://..."
-                  value={form.image_url}
-                  onChange={e => setForm(p => ({ ...p, image_url: e.target.value }))}
-                  className="flex-1 bg-secondary border-border text-xs"
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = ev => setForm(p => ({ ...p, image_url: ev.target.result }));
+                    reader.readAsDataURL(file);
+                  }}
                 />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 gap-2 border-dashed"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="w-4 h-4" />
+                  {form.image_url ? 'Trocar imagem' : 'Selecionar imagem'}
+                </Button>
               </div>
             </div>
 

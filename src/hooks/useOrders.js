@@ -37,7 +37,7 @@ export function useUpdateOrder() {
   });
 }
 
-async function linkOrderToCashier(orderId) {
+export async function linkOrderToCashier(orderId) {
   try {
     const cashiers = await localDB.entities.Cashier.filter({ status: 'aberto' });
     if (cashiers.length === 0) return;

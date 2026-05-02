@@ -14,6 +14,7 @@ import { printCustomerBill, printAutoByDept } from '@/components/PrintTicket';
 import ProductSelector from '@/components/ProductSelector';
 import TransferTableDialog from '@/components/TransferTableDialog';
 import { deductStockForOrder } from '@/lib/stockUtils';
+import CancelAuthModal from '@/components/CancelAuthModal';
 import { localDB } from '@/lib/localDB';
 import { useOrders, useCreateOrder, ORDER_KEY } from '@/hooks/useOrders';
 import { useProducts } from '@/hooks/useProducts';
@@ -28,6 +29,7 @@ const categoryEmoji = {
 const statusColor = {
   aberta: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
   preparando: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+  em_recebimento: 'bg-purple-500/15 text-purple-400 border-purple-500/30',
   fechada: 'bg-secondary text-muted-foreground border-border',
   cancelada: 'bg-destructive/15 text-destructive border-destructive/30',
 };
@@ -42,6 +44,7 @@ export default function Comandas() {
   const [noteItem, setNoteItem] = useState(null);
   const [noteText, setNoteText] = useState('');
   const [sendingOrder, setSendingOrder] = useState(false);
+  const [showCancelAuth, setShowCancelAuth] = useState(false);
   const navigate = useNavigate();
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -49,7 +52,11 @@ export default function Comandas() {
   const tableType = urlParams.get('type');
   const tableNumber = urlParams.get('number');
 
-  const { data: orders = [], isLoading: loadingOrders } = useOrders({ status: 'aberta' });
+  // Busca aberta e em_recebimento separadamente para garantir compatibilidade
+  const { data: ordersAberta = [], isLoading: loadingAberta } = useOrders({ status: 'aberta' });
+  const { data: ordersFechamento = [], isLoading: loadingFechamento } = useOrders({ status: 'em_recebimento' });
+  const orders = [...ordersAberta, ...ordersFechamento];
+  const loadingOrders = loadingAberta || loadingFechamento;
   const { data: products = [], isLoading: loadingProducts } = useProducts({ available: true });
   const { data: waiters = [], isLoading: loadingWaiters } = useWaiters({ active: true });
   const createOrderMutation = useCreateOrder();
@@ -144,15 +151,18 @@ export default function Comandas() {
 
   const sendToKitchenBar = async () => {
     setSendingOrder(true);
-    const pending = (effectiveOrder.items || []).filter(i => i.status === 'pendente');
-    if (pending.length) printAutoByDept(effectiveOrder, products, pending);
-    const items = (effectiveOrder.items || []).map(item =>
-      item.status === 'pendente' ? { ...item, status: 'preparando' } : item
-    );
-    const updated = await localDB.entities.Order.update(effectiveOrder.id, { items, status: 'preparando' });
-    setSelectedOrder(updated);
-    qc.invalidateQueries({ queryKey: ORDER_KEY });
-    setSendingOrder(false);
+    try {
+      const pending = (effectiveOrder.items || []).filter(i => i.status === 'pendente');
+      if (pending.length) printAutoByDept(effectiveOrder, products, pending);
+      const items = (effectiveOrder.items || []).map(item =>
+        item.status === 'pendente' ? { ...item, status: 'preparando' } : item
+      );
+      const updated = await localDB.entities.Order.update(effectiveOrder.id, { items, status: 'preparando' });
+      setSelectedOrder(updated);
+      qc.invalidateQueries({ queryKey: ORDER_KEY });
+    } finally {
+      setSendingOrder(false);
+    }
   };
 
   const saveNote = async () => {
@@ -165,10 +175,13 @@ export default function Comandas() {
   };
 
   const closeOrder = async (paymentMethod, discountVal) => {
+    const discount = Math.max(0, discountVal || 0);
+    const finalTotal = Math.max(0, (effectiveOrder.subtotal || 0) + (effectiveOrder.service_fee || 0) - discount);
     await localDB.entities.Order.update(effectiveOrder.id, {
       status: 'fechada',
       payment_method: paymentMethod,
-      discount: discountVal || 0,
+      discount,
+      total: finalTotal,
       closed_at: new Date().toISOString(),
     });
     if (effectiveOrder.table_id) await localDB.entities.Table.update(effectiveOrder.table_id, { status: 'livre' });
@@ -192,7 +205,9 @@ export default function Comandas() {
     navigate('/Mesas');
   };
 
-  const cancelOrder = async () => {
+  const cancelOrder = () => setShowCancelAuth(true);
+
+  const doCancelOrder = async () => {
     await localDB.entities.Order.update(effectiveOrder.id, { status: 'cancelada' });
     if (effectiveOrder.table_id) await localDB.entities.Table.update(effectiveOrder.table_id, { status: 'livre' });
     setSelectedOrder(null);
@@ -395,6 +410,13 @@ export default function Comandas() {
       />
 
       <CloseOrderDialog open={showClose} onClose={() => setShowClose(false)} order={effectiveOrder} onConfirm={closeOrder} />
+
+      <CancelAuthModal
+        open={showCancelAuth}
+        onClose={() => setShowCancelAuth(false)}
+        onConfirm={doCancelOrder}
+        label="comanda"
+      />
 
       <Dialog open={noteItem !== null} onOpenChange={() => setNoteItem(null)}>
         <DialogContent className="bg-card border-border max-w-sm">

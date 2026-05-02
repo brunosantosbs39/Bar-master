@@ -1,152 +1,204 @@
 [
   {
-    "product_id": "1773952140533-dzoi7v5",
+    "product_id": "1773959414358-21tnmi3",
     "product_name": "Cerveja Lata 350ml",
     "quantity": 50,
     "unit": "un",
     "min_quantity": 5,
-    "id": "1773952140543-xhjy8gn",
-    "created_at": "2026-03-19T20:29:00.543Z",
-    "updated_at": "2026-03-19T20:29:00.543Z"
+    "id": "1773959414370-7e7hv5a",
+    "created_at": "2026-03-19T22:30:14.370Z",
+    "updated_at": "2026-03-19T22:30:14.370Z"
   },
   {
-    "product_id": "1773952140533-rl10c49",
+    "product_id": "1773959414359-bm84ywq",
     "product_name": "Cerveja Long Neck",
     "quantity": 50,
     "unit": "un",
     "min_quantity": 5,
-    "id": "1773952140543-mwsmmbt",
-    "created_at": "2026-03-19T20:29:00.543Z",
-    "updated_at": "2026-03-19T20:29:00.543Z"
+    "id": "1773959414371-vmmha7i",
+    "created_at": "2026-03-19T22:30:14.371Z",
+    "updated_at": "2026-03-19T22:30:14.371Z"
   },
   {
-    "product_id": "1773952140534-0biqrop",
+    "product_id": "1773959414360-sekbtud",
     "product_name": "Cerveja Garrafa 600ml",
     "quantity": 50,
     "unit": "un",
     "min_quantity": 5,
-    "id": "1773952140544-dsel1nl",
-    "created_at": "2026-03-19T20:29:00.544Z",
-    "updated_at": "2026-03-19T20:29:00.544Z"
+    "id": "1773959414371-46kbubm",
+    "created_at": "2026-03-19T22:30:14.371Z",
+    "updated_at": "2026-03-19T22:30:14.371Z"
   },
   {
-    "product_id": "1773952140534-pmgf9nm",
+    "product_id": "1773959414360-81wa2rl",
     "product_name": "Whisky Dose",
     "quantity": 50,
     "unit": "un",
     "min_quantity": 5,
-    "id": "1773952140544-4a8i0wo",
-    "created_at": "2026-03-19T20:29:00.544Z",
-    "updated_at": "2026-03-19T20:29:00.544Z"
+    "id": "1773959414372-3cdgqjn",
+    "created_at": "2026-03-19T22:30:14.372Z",
+    "updated_at": "2026-03-19T22:30:14.372Z"
   },
   {
-    "product_id": "1773952140535-pxatuay",
+    "product_id": "1773959414361-muaifk8",
     "product_name": "Caipirinha",
     "quantity": 50,
     "unit": "un",
     "min_quantity": 5,
-    "id": "1773952140545-90b2wap",
-    "created_at": "2026-03-19T20:29:00.545Z",
-    "updated_at": "2026-03-19T20:29:00.545Z"
+    "id": "1773959414373-ic5hgwu",
+    "created_at": "2026-03-19T22:30:14.373Z",
+    "updated_at": "2026-03-19T22:30:14.373Z"
   },
   {
-    "product_id": "1773952140536-lfv5rwi",
+    "product_id": "1773959414361-oooouwk",
     "product_name": "Água Mineral",
     "quantity": 50,
     "unit": "un",
     "min_quantity": 5,
-    "id": "1773952140545-za6ke1t",
-    "created_at": "2026-03-19T20:29:00.545Z",
-    "updated_at": "2026-03-19T20:29:00.545Z"
+    "id": "1773959414373-ojivpvu",
+    "created_at": "2026-03-19T22:30:14.373Z",
+    "updated_at": "2026-03-19T22:30:14.373Z"
   },
   {
-    "product_id": "1773952140536-dyseldh",
+    "product_id": "1773959414362-digeyab",
     "product_name": "Refrigerante Lata",
     "quantity": 50,
     "unit": "un",
     "min_quantity": 5,
-    "id": "1773952140546-n78opwd",
-    "created_at": "2026-03-19T20:29:00.546Z",
-    "updated_at": "2026-03-19T20:29:00.546Z"
+    "id": "1773959414374-k6m31er",
+    "created_at": "2026-03-19T22:30:14.374Z",
+    "updated_at": "2026-03-19T22:30:14.374Z"
   },
   {
-    "product_id": "1773952140537-plpac79",
+    "product_id": "1773959414363-dksg7r6",
     "product_name": "Suco Natural",
     "quantity": 50,
     "unit": "un",
     "min_quantity": 5,
-    "id": "1773952140546-r16y9mr",
-    "created_at": "2026-03-19T20:29:00.546Z",
-    "updated_at": "2026-03-19T20:29:00.546Z"
+    "id": "1773959414375-nifhyfg",
+    "created_at": "2026-03-19T22:30:14.375Z",
+    "updated_at": "2026-03-19T22:30:14.375Z"
   },
   {
-    "product_id": "1773952140537-sjpd8yc",
+    "product_id": "1773959414363-3r2bg4i",
     "product_name": "Porção de Batata Frita",
     "quantity": 50,
     "unit": "un",
     "min_quantity": 5,
-    "id": "1773952140547-116ifcb",
-    "created_at": "2026-03-19T20:29:00.546Z",
-    "updated_at": "2026-03-19T20:29:00.546Z"
+    "id": "1773959414376-1w8bkc5",
+    "created_at": "2026-03-19T22:30:14.376Z",
+    "updated_at": "2026-03-19T22:30:14.376Z"
   },
   {
-    "product_id": "1773952140538-3hpx1q3",
+    "product_id": "1773959414364-yxsh90z",
     "product_name": "Porção de Frango",
     "quantity": 50,
     "unit": "un",
     "min_quantity": 5,
-    "id": "1773952140547-0yu8oeh",
-    "created_at": "2026-03-19T20:29:00.547Z",
-    "updated_at": "2026-03-19T20:29:00.547Z"
+    "id": "1773959414376-49q3n7u",
+    "created_at": "2026-03-19T22:30:14.376Z",
+    "updated_at": "2026-03-19T22:30:14.376Z"
   },
   {
-    "product_id": "1773952140538-c0ei5sh",
+    "product_id": "1773959414365-2o4twqy",
     "product_name": "Bolinho de Bacalhau 6un",
     "quantity": 50,
     "unit": "un",
     "min_quantity": 5,
-    "id": "1773952140547-bz0pas8",
-    "created_at": "2026-03-19T20:29:00.547Z",
-    "updated_at": "2026-03-19T20:29:00.547Z"
+    "id": "1773959414377-uwo8ds8",
+    "created_at": "2026-03-19T22:30:14.377Z",
+    "updated_at": "2026-03-19T22:30:14.377Z"
   },
   {
-    "product_id": "1773952140539-97hl5mf",
+    "product_id": "1773959414365-hpvnx7v",
     "product_name": "Tábua de Frios",
     "quantity": 50,
     "unit": "un",
     "min_quantity": 5,
-    "id": "1773952140548-j1t91d1",
-    "created_at": "2026-03-19T20:29:00.548Z",
-    "updated_at": "2026-03-19T20:29:00.548Z"
+    "id": "1773959414380-t77w7dr",
+    "created_at": "2026-03-19T22:30:14.380Z",
+    "updated_at": "2026-03-19T22:30:14.380Z"
   },
   {
-    "product_id": "1773952140539-c46hmmy",
+    "product_id": "1773959414366-0ev00bj",
     "product_name": "Frango Grelhado",
     "quantity": 50,
     "unit": "un",
     "min_quantity": 5,
-    "id": "1773952140548-w9x5nmy",
-    "created_at": "2026-03-19T20:29:00.548Z",
-    "updated_at": "2026-03-19T20:29:00.548Z"
+    "id": "1773959414380-0gas1kf",
+    "created_at": "2026-03-19T22:30:14.380Z",
+    "updated_at": "2026-03-19T22:30:14.380Z"
   },
   {
-    "product_id": "1773952140539-fkrcruk",
+    "product_id": "1773959414367-f1nws6z",
     "product_name": "Picanha na Chapa",
     "quantity": 50,
     "unit": "un",
     "min_quantity": 5,
-    "id": "1773952140549-eluo98x",
-    "created_at": "2026-03-19T20:29:00.549Z",
-    "updated_at": "2026-03-19T20:29:00.549Z"
+    "id": "1773959414381-2imh1h8",
+    "created_at": "2026-03-19T22:30:14.381Z",
+    "updated_at": "2026-03-19T22:30:14.381Z"
   },
   {
-    "product_id": "1773952140541-eickenu",
+    "product_id": "1773959414367-lf6n1sp",
     "product_name": "Pudim",
     "quantity": 50,
     "unit": "un",
     "min_quantity": 5,
-    "id": "1773952140549-u6l0k1j",
-    "created_at": "2026-03-19T20:29:00.549Z",
-    "updated_at": "2026-03-19T20:29:00.549Z"
+    "id": "1773959414382-f5exxyt",
+    "created_at": "2026-03-19T22:30:14.382Z",
+    "updated_at": "2026-03-19T22:30:14.382Z"
+  },
+  {
+    "name": "Costelinhas de caranha",
+    "product_id": "1774046219468-c8hlxgl",
+    "product_name": "Costelinhas de caranha",
+    "unit": "un",
+    "quantity": 5,
+    "min_quantity": 2,
+    "deduct_per_sale": 1,
+    "active": true,
+    "id": "1776125729258-lt39oe8",
+    "created_at": "2026-04-14T00:15:29.258Z",
+    "updated_at": "2026-04-25T03:42:45.115Z"
+  },
+  {
+    "name": "Iscas de tilápia empanada",
+    "product_id": "1773959414365-hpvnx7v",
+    "product_name": "Iscas de tilápia empanada",
+    "unit": "un",
+    "quantity": 0,
+    "min_quantity": 2,
+    "deduct_per_sale": 1,
+    "active": true,
+    "id": "1776125782146-wa077gd",
+    "created_at": "2026-04-14T00:16:22.146Z",
+    "updated_at": "2026-05-01T02:08:20.941Z"
+  },
+  {
+    "name": "Pimenta Recheada",
+    "product_id": "1774191528704-bpjpur0",
+    "product_name": "Pimenta Recheada",
+    "unit": "un",
+    "quantity": 2,
+    "min_quantity": 2,
+    "deduct_per_sale": 1,
+    "active": true,
+    "id": "1776125848432-6qeg6sh",
+    "created_at": "2026-04-14T00:17:28.432Z",
+    "updated_at": "2026-04-14T00:17:28.432Z"
+  },
+  {
+    "name": "Asa Recheada",
+    "product_id": "1774397044261-zzmoyhw",
+    "product_name": "Asa Recheada",
+    "unit": "un",
+    "quantity": 6,
+    "min_quantity": 2,
+    "deduct_per_sale": 1,
+    "active": true,
+    "id": "1776125924376-lw6r6hj",
+    "created_at": "2026-04-14T00:18:44.376Z",
+    "updated_at": "2026-04-26T14:15:10.413Z"
   }
 ]

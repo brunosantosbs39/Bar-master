@@ -1,7 +1,8 @@
 /**
  * PrintTicket - Componente de impressão para departamentos e conta do cliente
- * Usa window.print() com CSS @media print para gerar o ticket correto
+ * Suporta 3 métodos: QZ Tray (USB/local), Rede TCP e Navegador
  */
+import { loadPrinterConfig, buildEscPosKitchen, buildEscPosBill, printViaQZTray } from '@/lib/printerConfig';
 
 const categoryDept = {
   cervejas: 'bar',
@@ -42,29 +43,56 @@ export function printAutoByDept(order, products, itemsToPrint) {
   }
 }
 
-// Internal: prints specific items for a dept
-function _printDept(order, items, dept) {
-  const tableLabel =
-    order.table_type === 'delivery' ? 'DELIVERY' :
-    order.table_type === 'balcao' ? 'BALCAO' :
-    `MESA ${order.table_number || ''}`;
-
-  const now = new Date().toLocaleString('pt-BR');
+// Internal: roteia impressão para QZ Tray, browser ou servidor TCP
+async function _printDept(order, items, dept) {
+  const cfg = loadPrinterConfig()[dept];
+  const tableLabel = order.table_type === 'delivery' ? 'DELIVERY'
+    : order.table_type === 'balcao' ? 'BALCAO'
+    : `MESA ${order.table_number || ''}`;
   const deptLabel = dept === 'cozinha' ? 'COZINHA' : 'BAR';
-  const deptEmoji = dept === 'cozinha' ? '🍳 COZINHA' : '🍺 BAR';
 
-  const printerCfg = getPrinterConfig(dept);
-  if (printerCfg?.enabled && printerCfg?.method === 'qztray' && printerCfg?.name) {
-    import('@/lib/printerConfig').then(({ printViaQZTray, buildEscPosKitchen }) => {
-      const escPos = buildEscPosKitchen(order, items, deptLabel, tableLabel);
-      printViaQZTray(printerCfg.name, escPos).catch(() => {
-        openPrintWindow(buildKitchenHtml(items, deptEmoji, tableLabel, now, order));
-      });
-    });
+  // USB Windows direto via servidor (sem QZ Tray)
+  if (cfg?.enabled && cfg?.method === 'winusb') {
+    if (!cfg.name) { _showPrintError(`Impressora ${dept.toUpperCase()}: nome da impressora não configurado`); return; }
+    fetch('/api/print-usb', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ printerName: cfg.name, dept, order, items }),
+    }).then(r => r.json()).then(data => {
+      if (data.error) _showPrintError(`Impressora ${dept.toUpperCase()}: ${data.error}`);
+    }).catch(err => console.error('[USB Windows]', err));
     return;
   }
 
-  openPrintWindow(buildKitchenHtml(items, deptEmoji, tableLabel, now, order));
+  // QZ Tray — impressora USB/local via WebSocket
+  if (cfg?.enabled && cfg?.method === 'qztray') {
+    if (!cfg.name) { _showPrintError(`Impressora ${dept.toUpperCase()}: nome da impressora não configurado`); return; }
+    try {
+      const escPos = buildEscPosKitchen(order, items, deptLabel, tableLabel, { printDensity: cfg.printDensity ?? 4 });
+      await printViaQZTray(cfg.name, escPos);
+    } catch (err) {
+      _showPrintError(`Impressora ${dept.toUpperCase()}: ${err.message}`);
+    }
+    return;
+  }
+
+  // Navegador — popup de impressão
+  if (cfg?.enabled && cfg?.method === 'browser') {
+    const now = new Date().toLocaleString('pt-BR');
+    openPrintWindow(buildKitchenHtml(items, deptLabel, tableLabel, now, order));
+    return;
+  }
+
+  // Rede TCP via servidor (padrão)
+  fetch('/api/print-order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ order, items, dept }),
+  }).then(r => r.json()).then(data => {
+    if (data.error) _showPrintError(`Impressora ${dept.toUpperCase()}: ${data.error}`);
+  }).catch(err => {
+    console.error('[Impressora]', err);
+  });
 }
 
 export function printKitchenBar(order, products, dept) {
@@ -84,8 +112,10 @@ function buildKitchenHtml(items, deptLabel, tableLabel, now, order) {
       <meta charset="UTF-8">
       <title>Pedido - ${deptLabel}</title>
       <style>
+        @page { size: 80mm auto; margin: 0 !important; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Courier New', monospace; font-size: 13px; padding: 8px; width: 80mm; }
+        html, body { width: 100% !important; }
+        body { font-family: 'Courier New', monospace; font-size: 13px; padding: 3mm; }
         .center { text-align: center; }
         .bold { font-weight: bold; }
         .big { font-size: 18px; font-weight: bold; }
@@ -120,81 +150,151 @@ function buildKitchenHtml(items, deptLabel, tableLabel, now, order) {
   `;
 }
 
-export function printCustomerBill(order) {
+function buildCustomerBillHtml(order) {
   const tableLabel =
     order.table_type === 'delivery' ? 'DELIVERY' :
     order.table_type === 'balcao' ? 'BALCÃO' :
     `MESA ${order.table_number || ''}`;
-
   const now = new Date().toLocaleString('pt-BR');
   const payLabels = {
     dinheiro: 'Dinheiro', cartao_credito: 'Cartão Crédito',
-    cartao_debito: 'Cartão Débito', pix: 'Pix', misto: 'Misto'
+    cartao_debito: 'Cartão Débito', pix: 'Pix', misto: 'Misto',
   };
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Conta</title>
+    <style>
+      @page{size:80mm auto;margin:0 !important}
+      *{margin:0;padding:0;box-sizing:border-box}
+      html,body{width:100% !important}
+      body{font-family:'Courier New',monospace;font-size:12px;padding:3mm}
+      .center{text-align:center}.bold{font-weight:bold}
+      .divider{border-top:1px dashed #000;margin:5px 0}
+      .row{display:flex;justify-content:space-between;align-items:baseline;padding:2px 0;width:100%}
+      .total-row{display:flex;justify-content:space-between;align-items:baseline;font-size:16px;font-weight:bold;margin-top:4px;width:100%}
+      .bar-name{font-size:18px;font-weight:bold;text-align:center;width:100%}
+    </style></head><body>
+    <div class="bar-name">MEU BAR</div>
+    <div class="center" style="font-size:11px;margin-bottom:4px;">Obrigado pela preferência!</div>
+    <div class="divider"></div>
+    <div class="row"><span class="bold">${tableLabel}</span><span>${now}</span></div>
+    ${order.customer_name ? `<div>Cliente: ${order.customer_name}</div>` : ''}
+    <div class="divider"></div>
+    <div class="row bold"><span>ITEM</span><span>QTD</span><span>TOTAL</span></div>
+    <div class="divider"></div>
+    ${(order.items || []).map(item => `
+      <div class="row">
+        <span style="flex:1;overflow:hidden;word-break:break-word;">${item.product_name}</span>
+        <span style="margin:0 8px;">${item.quantity}x</span>
+        <span>R$ ${(item.total || 0).toFixed(2)}</span>
+      </div>
+      ${item.notes ? `<div style="font-size:10px;color:#666;padding-left:4px;">↳ ${item.notes}</div>` : ''}
+    `).join('')}
+    <div class="divider"></div>
+    <div class="row"><span>Subtotal</span><span>R$ ${(order.subtotal || 0).toFixed(2)}</span></div>
+    <div class="row"><span>Serviço (10%)</span><span>R$ ${(order.service_fee || 0).toFixed(2)}</span></div>
+    ${order.discount ? `<div class="row"><span>Desconto</span><span>- R$ ${order.discount.toFixed(2)}</span></div>` : ''}
+    <div class="divider"></div>
+    <div class="total-row"><span>TOTAL</span><span>R$ ${(order.total || 0).toFixed(2)}</span></div>
+    ${order.payment_method ? `<div class="row" style="margin-top:4px;"><span>Pagamento</span><span>${payLabels[order.payment_method] || order.payment_method}</span></div>` : ''}
+    <div class="divider"></div>
+    <div class="center" style="margin-top:8px;font-size:11px;">*** NÃO É DOCUMENTO FISCAL ***</div>
+    </body></html>`;
+}
 
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>Conta do Cliente</title>
-      <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Courier New', monospace; font-size: 12px; padding: 8px; width: 80mm; }
-        .center { text-align: center; }
-        .bold { font-weight: bold; }
-        .divider { border-top: 1px dashed #000; margin: 6px 0; }
-        .row { display: flex; justify-content: space-between; padding: 2px 0; }
-        .total-row { display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; margin-top: 4px; }
-        .bar-name { font-size: 18px; font-weight: bold; text-align: center; }
-      </style>
-    </head>
-    <body>
-      <div class="bar-name">⭐ MEU BAR</div>
-      <div class="center" style="font-size:11px; margin-bottom:4px;">Obrigado pela preferência!</div>
-      <div class="divider"></div>
-      <div class="row"><span class="bold">${tableLabel}</span><span>${now}</span></div>
-      ${order.customer_name ? `<div>Cliente: ${order.customer_name}</div>` : ''}
-      <div class="divider"></div>
-      <div class="row bold"><span>ITEM</span><span>QTD</span><span>TOTAL</span></div>
-      <div class="divider"></div>
-      ${(order.items || []).map(item => `
-        <div class="row">
-          <span style="flex:1;max-width:120px;overflow:hidden;">${item.product_name}</span>
-          <span style="margin:0 8px;">${item.quantity}x</span>
-          <span>R$ ${item.total.toFixed(2)}</span>
-        </div>
-        ${item.notes ? `<div style="font-size:10px;color:#666;padding-left:4px;">↳ ${item.notes}</div>` : ''}
-      `).join('')}
-      <div class="divider"></div>
-      <div class="row"><span>Subtotal</span><span>R$ ${(order.subtotal || 0).toFixed(2)}</span></div>
-      <div class="row"><span>Serviço (10%)</span><span>R$ ${(order.service_fee || 0).toFixed(2)}</span></div>
-      ${order.discount ? `<div class="row"><span>Desconto</span><span>- R$ ${order.discount.toFixed(2)}</span></div>` : ''}
-      <div class="divider"></div>
-      <div class="total-row"><span>TOTAL</span><span>R$ ${(order.total || 0).toFixed(2)}</span></div>
-      ${order.payment_method ? `<div class="row" style="margin-top:4px;"><span>Pagamento</span><span>${payLabels[order.payment_method] || order.payment_method}</span></div>` : ''}
-      <div class="divider"></div>
-      <div class="center" style="margin-top:8px; font-size:11px;">*** NÃO É DOCUMENTO FISCAL ***</div>
-    </body>
-    </html>
-  `;
+export async function printCustomerBill(order) {
+  const printers = loadPrinterConfig();
+  // Se 'bar' não está habilitada, usa 'cozinha' como fallback (única impressora)
+  const cfg = (printers['bar']?.enabled) ? printers['bar'] : (printers['cozinha'] ?? printers['bar']);
 
-  openPrintWindow(html);
+  // USB Windows direto via servidor (sem QZ Tray)
+  if (cfg?.enabled && cfg?.method === 'winusb') {
+    if (!cfg.name) { _showPrintError('Impressora Bar: nome da impressora não configurado'); return; }
+    fetch('/api/print-usb-bill', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ printerName: cfg.name, order }),
+    }).then(r => r.json()).then(data => {
+      if (data.error) _showPrintError(`Impressora Bar (conta): ${data.error}`);
+    }).catch(err => console.error('[USB Windows Bill]', err));
+    return;
+  }
+
+  // QZ Tray — impressora USB/local via WebSocket
+  if (cfg?.enabled && cfg?.method === 'qztray') {
+    if (!cfg.name) { _showPrintError('Impressora Bar: nome da impressora não configurado'); return; }
+    try {
+      const escPos = buildEscPosBill(order, { printDensity: cfg.printDensity ?? 4 });
+      await printViaQZTray(cfg.name, escPos);
+    } catch (err) {
+      _showPrintError(`Impressora Bar (conta): ${err.message}`);
+    }
+    return;
+  }
+
+  // Navegador — popup de impressão
+  if (cfg?.enabled && cfg?.method === 'browser') {
+    openPrintWindow(buildCustomerBillHtml(order));
+    return;
+  }
+
+  // Rede TCP via servidor (padrão)
+  fetch('/api/print-bill', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ order }),
+  }).then(r => r.json()).then(data => {
+    if (data.error) _showPrintError(`Impressora Bar (conta): ${data.error}`);
+  }).catch(err => {
+    console.error('[Impressora Conta]', err);
+  });
+}
+
+function _showPrintError(msg) {
+  const div = document.createElement('div');
+  div.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:99999;background:#dc2626;color:#fff;padding:10px 18px;border-radius:12px;font-size:13px;font-family:sans-serif;box-shadow:0 4px 16px rgba(0,0,0,0.3);max-width:90vw;text-align:center;';
+  div.textContent = '⚠️ Erro de impressão: ' + msg;
+  document.body.appendChild(div);
+  setTimeout(() => { if (document.body.contains(div)) document.body.removeChild(div); }, 5000);
 }
 
 function openPrintWindow(html) {
-  const win = window.open('', '_blank', 'width=400,height=600');
-  if (!win) {
-    alert('Pop-up bloqueado! Permita pop-ups para este site nas configurações do navegador para imprimir.');
-    return;
+  // Usa injeção no DOM em todos os dispositivos (mobile e desktop)
+  // Evita popup bloqueado no desktop e funciona de forma consistente
+  const hideId = '__barmaster_print_style__';
+  const cssId  = '__barmaster_print_css__';
+  const divId  = '__barmaster_print_div__';
+
+  // 1) CSS de ocultação dos outros elementos durante impressão
+  let hideEl = document.getElementById(hideId);
+  if (!hideEl) {
+    hideEl = document.createElement('style');
+    hideEl.id = hideId;
+    hideEl.textContent = `@media print { body > *:not(#${divId}) { display: none !important; } #${divId} { display: block !important; } } #${divId} { display: none; }`;
+    document.head.appendChild(hideEl);
   }
-  win.document.write(html);
-  win.document.close();
-  win.focus();
-  setTimeout(() => {
-    win.print();
-    win.close();
-  }, 300);
+
+  // 2) CSS do ticket (extrai do HTML gerado e injeta no head — @page, body, etc.)
+  const styleMatch = html.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+  let cssEl = document.getElementById(cssId);
+  if (!cssEl) {
+    cssEl = document.createElement('style');
+    cssEl.id = cssId;
+    document.head.appendChild(cssEl);
+  }
+  cssEl.textContent = styleMatch ? styleMatch[1] : '';
+
+  // 3) Conteúdo do body
+  let printDiv = document.getElementById(divId);
+  if (!printDiv) {
+    printDiv = document.createElement('div');
+    printDiv.id = divId;
+    document.body.appendChild(printDiv);
+  }
+  const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  printDiv.innerHTML = bodyMatch ? bodyMatch[1] : html;
+
+  const cleanup = () => { printDiv.innerHTML = ''; cssEl.textContent = ''; };
+  window.onafterprint = cleanup;
+  window.print();
 }
 
 function getPrinterConfig(dept) {

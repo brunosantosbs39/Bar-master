@@ -3,11 +3,11 @@
     "number": 1,
     "type": "mesa",
     "capacity": 4,
-    "status": "livre",
+    "status": "ocupada",
     "active": true,
-    "id": "1773952140528-91wrrk7",
-    "created_at": "2026-03-19T20:29:00.527Z",
-    "updated_at": "2026-03-19T20:29:00.527Z"
+    "id": "1773959414350-5tf7wp6",
+    "created_at": "2026-03-19T22:30:14.350Z",
+    "updated_at": "2026-05-01T03:08:54.512Z"
   },
   {
     "number": 2,
@@ -15,9 +15,9 @@
     "capacity": 4,
     "status": "livre",
     "active": true,
-    "id": "1773952140528-xwoxlgi",
-    "created_at": "2026-03-19T20:29:00.528Z",
-    "updated_at": "2026-03-19T20:29:00.528Z"
+    "id": "1773959414351-gft8evz",
+    "created_at": "2026-03-19T22:30:14.351Z",
+    "updated_at": "2026-04-25T16:43:57.939Z"
   },
   {
     "number": 3,
@@ -25,9 +25,9 @@
     "capacity": 6,
     "status": "livre",
     "active": true,
-    "id": "1773952140529-fsd356q",
-    "created_at": "2026-03-19T20:29:00.529Z",
-    "updated_at": "2026-03-19T20:29:00.529Z"
+    "id": "1773959414352-7g2oc10",
+    "created_at": "2026-03-19T22:30:14.352Z",
+    "updated_at": "2026-04-26T18:19:24.241Z"
   },
   {
     "number": 4,
@@ -35,9 +35,9 @@
     "capacity": 6,
     "status": "livre",
     "active": true,
-    "id": "1773952140529-tpxa7bb",
-    "created_at": "2026-03-19T20:29:00.529Z",
-    "updated_at": "2026-03-19T20:29:00.529Z"
+    "id": "1773959414353-p16lvhm",
+    "created_at": "2026-03-19T22:30:14.353Z",
+    "updated_at": "2026-04-25T16:20:58.631Z"
   },
   {
     "number": 5,
@@ -45,9 +45,9 @@
     "capacity": 2,
     "status": "livre",
     "active": true,
-    "id": "1773952140530-g3guzln",
-    "created_at": "2026-03-19T20:29:00.530Z",
-    "updated_at": "2026-03-19T20:29:00.530Z"
+    "id": "1773959414353-ulasvji",
+    "created_at": "2026-03-19T22:30:14.353Z",
+    "updated_at": "2026-04-25T16:21:11.554Z"
   },
   {
     "number": 6,
@@ -55,9 +55,9 @@
     "capacity": 8,
     "status": "livre",
     "active": true,
-    "id": "1773952140530-zuzzriy",
-    "created_at": "2026-03-19T20:29:00.530Z",
-    "updated_at": "2026-03-19T20:29:00.530Z"
+    "id": "1773959414354-ix9l7m9",
+    "created_at": "2026-03-19T22:30:14.354Z",
+    "updated_at": "2026-04-25T22:54:51.607Z"
   },
   {
     "number": 7,
@@ -65,9 +65,9 @@
     "capacity": 4,
     "status": "livre",
     "active": true,
-    "id": "1773952140531-bxkralj",
-    "created_at": "2026-03-19T20:29:00.531Z",
-    "updated_at": "2026-03-19T20:29:00.531Z"
+    "id": "1773959414355-lso0iw2",
+    "created_at": "2026-03-19T22:30:14.355Z",
+    "updated_at": "2026-03-29T19:34:04.953Z"
   },
   {
     "number": 8,
@@ -75,28 +75,88 @@
     "capacity": 4,
     "status": "livre",
     "active": true,
-    "id": "1773952140531-3qp9mwb",
-    "created_at": "2026-03-19T20:29:00.531Z",
-    "updated_at": "2026-03-19T20:29:00.531Z"
+    "id": "1773959414356-gx49ued",
+    "created_at": "2026-03-19T22:30:14.356Z",
+    "updated_at": "2026-03-29T19:34:15.958Z"
   },
   {
-    "number": 1,
-    "type": "balcao",
-    "capacity": 6,
+    "number": 9,
+    "type": "mesa",
+    "capacity": 4,
     "status": "livre",
     "active": true,
-    "id": "1773952140532-wb51j1e",
-    "created_at": "2026-03-19T20:29:00.532Z",
-    "updated_at": "2026-03-19T20:29:00.532Z"
+    "id": "1773971792807-t2ja2ga",
+    "created_at": "2026-03-20T01:56:32.807Z",
+    "updated_at": "2026-04-21T14:40:22.554Z"
   },
   {
-    "number": 1,
-    "type": "delivery",
-    "capacity": 1,
+    "number": 10,
+    "type": "mesa",
+    "capacity": 4,
     "status": "livre",
     "active": true,
-    "id": "1773952140532-cfrz24h",
-    "created_at": "2026-03-19T20:29:00.532Z",
-    "updated_at": "2026-03-19T20:29:00.532Z"
+    "id": "1773971804926-klq4md0",
+    "created_at": "2026-03-20T01:56:44.926Z",
+    "updated_at": "2026-04-10T23:10:41.480Z"
+  },
+  {
+    "number": 11,
+    "type": "mesa",
+    "capacity": 4,
+    "status": "livre",
+    "active": true,
+    "id": "1773971811674-geuqarr",
+    "created_at": "2026-03-20T01:56:51.674Z",
+    "updated_at": "2026-03-20T01:56:51.674Z"
+  },
+  {
+    "number": 12,
+    "type": "mesa",
+    "capacity": 4,
+    "status": "livre",
+    "active": true,
+    "id": "1773971818283-cniw7bo",
+    "created_at": "2026-03-20T01:56:58.282Z",
+    "updated_at": "2026-03-20T01:56:58.282Z"
+  },
+  {
+    "number": 13,
+    "type": "mesa",
+    "capacity": 4,
+    "status": "livre",
+    "active": true,
+    "id": "1774104004759-fy09d8j",
+    "created_at": "2026-03-21T14:40:04.758Z",
+    "updated_at": "2026-03-21T14:40:04.758Z"
+  },
+  {
+    "number": 14,
+    "type": "mesa",
+    "capacity": 4,
+    "status": "livre",
+    "active": true,
+    "id": "1774104010003-26lfjja",
+    "created_at": "2026-03-21T14:40:10.003Z",
+    "updated_at": "2026-03-21T14:40:10.003Z"
+  },
+  {
+    "number": 15,
+    "type": "mesa",
+    "capacity": 4,
+    "status": "livre",
+    "active": true,
+    "id": "1774104016139-hrf6ntc",
+    "created_at": "2026-03-21T14:40:16.139Z",
+    "updated_at": "2026-03-21T14:40:16.139Z"
+  },
+  {
+    "number": 16,
+    "type": "mesa",
+    "capacity": 4,
+    "status": "livre",
+    "active": true,
+    "id": "1774104023412-du332xh",
+    "created_at": "2026-03-21T14:40:23.412Z",
+    "updated_at": "2026-03-29T19:34:39.669Z"
   }
 ]

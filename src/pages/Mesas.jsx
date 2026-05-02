@@ -25,7 +25,11 @@ const typeConfig = {
 
 export default function Mesas() {
   const { data: tables = [], isLoading: loadingTables } = useTables();
-  const { data: orders = [], isLoading: loadingOrders } = useOrders({ status: 'aberta' });
+  // Busca ordens abertas e em fechamento em consultas separadas e combina
+  const { data: ordersAberta = [], isLoading: loadingAberta } = useOrders({ status: 'aberta' });
+  const { data: ordersFechamento = [], isLoading: loadingFechamento } = useOrders({ status: 'em_recebimento' });
+  const orders = [...ordersAberta, ...ordersFechamento];
+  const loadingOrders = loadingAberta || loadingFechamento;
   const createTableMutation = useCreateTable();
   const loading = loadingTables || loadingOrders;
 
@@ -99,6 +103,7 @@ export default function Mesas() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               {items.map((table, i) => {
                 const order = getTableOrder(table.id);
+                const isEmFechamento = order?.status === 'em_recebimento';
                 const status = order ? 'ocupada' : table.status;
                 const cfg = statusConfig[status] || statusConfig.livre;
                 return (
@@ -109,7 +114,9 @@ export default function Mesas() {
                     transition={{ delay: i * 0.05 }}
                     onClick={() => openOrder(table)}
                     className={`relative cursor-pointer rounded-xl p-4 border-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-xl ${
-                      status === 'ocupada'
+                      isEmFechamento
+                        ? 'border-purple-500/70 bg-purple-500/10 shadow-purple-500/10 shadow-md'
+                        : status === 'ocupada'
                         ? 'border-amber-500/70 bg-amber-500/10 shadow-amber-500/10 shadow-md'
                         : status === 'reservada'
                         ? 'border-blue-500/50 bg-blue-500/8'
@@ -118,12 +125,14 @@ export default function Mesas() {
                   >
                     {/* Status dot */}
                     <div className={`absolute top-3 right-3 w-2.5 h-2.5 rounded-full ${
+                      isEmFechamento ? 'bg-purple-400 animate-pulse' :
                       status === 'ocupada' ? 'bg-amber-400 animate-pulse' :
                       status === 'reservada' ? 'bg-blue-400' : 'bg-emerald-400'
                     }`} />
 
                     <div className="mb-3">
                       <span className={`text-2xl font-black ${
+                        isEmFechamento ? 'text-purple-300' :
                         status === 'ocupada' ? 'text-amber-300' :
                         status === 'reservada' ? 'text-blue-300' : 'text-emerald-300'
                       }`}>
@@ -131,7 +140,11 @@ export default function Mesas() {
                       </span>
                     </div>
 
-                    <Badge className={`text-xs border mb-2 ${cfg.color}`}>{cfg.label}</Badge>
+                    {isEmFechamento ? (
+                      <Badge className="text-xs border mb-2 bg-purple-500/15 text-purple-400 border-purple-500/30">🔒 Fechamento</Badge>
+                    ) : (
+                      <Badge className={`text-xs border mb-2 ${cfg.color}`}>{cfg.label}</Badge>
+                    )}
 
                     {table.capacity && (
                       <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
@@ -140,7 +153,7 @@ export default function Mesas() {
                       </div>
                     )}
                     {order && (
-                      <div className="flex items-center gap-1 text-xs text-amber-400 mt-1.5 font-semibold">
+                      <div className={`flex items-center gap-1 text-xs mt-1.5 font-semibold ${isEmFechamento ? 'text-purple-400' : 'text-amber-400'}`}>
                         <ShoppingBag className="w-3 h-3" />
                         <span>R$ {(order.total || 0).toFixed(2)}</span>
                       </div>

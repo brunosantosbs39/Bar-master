@@ -402,6 +402,14 @@ export default function Configuracoes() {
   const [waiterForm, setWaiterForm] = useState({ name: '', nickname: '', phone: '', password: '' });
   const [expandedWaiter, setExpandedWaiter] = useState(null);
   const [importError, setImportError] = useState('');
+  const [localIP, setLocalIP] = useState('');
+
+  useEffect(() => {
+    fetch('/api/local-ip')
+      .then(r => r.json())
+      .then(d => { if (d.ip) setLocalIP(d.ip); })
+      .catch(() => {});
+  }, []);
 
   const { logoUrl, bannerUrl } = useBranding();
   const { data: settings } = useSettings();
@@ -815,12 +823,12 @@ export default function Configuracoes() {
 
       <div className="p-4 rounded-xl border border-border bg-card">
         <h3 className="text-sm font-semibold text-foreground mb-3">Acesso Garçom</h3>
-        <p className="text-xs text-muted-foreground mb-2">Compartilhe este link com seus garçons:</p>
+        <p className="text-xs text-muted-foreground mb-2">Compartilhe este link com seus garçons (fixo, não muda ao reiniciar):</p>
         <div className="flex items-center gap-2">
           <code className="flex-1 text-xs bg-secondary px-3 py-2 rounded-lg text-primary truncate">
-            http://192.168.100.158:5173/GarcomLogin
+            {localIP ? `http://${localIP}:5173/GarcomLogin` : 'Carregando...'}
           </code>
-          <Button size="sm" variant="outline" onClick={() => navigator.clipboard.writeText(`http://192.168.100.158:5173/GarcomLogin`)}>
+          <Button size="sm" variant="outline" disabled={!localIP} onClick={() => navigator.clipboard.writeText(`http://${localIP}:5173/GarcomLogin`)}>
             Copiar
           </Button>
         </div>

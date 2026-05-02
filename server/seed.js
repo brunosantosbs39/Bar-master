@@ -65,8 +65,16 @@ export function seed() {
   products.forEach(p => create('products', p));
 
   // Garçons
-  create('waiters', { name: 'João', nickname: 'João', pin: '1234', active: true });
-  create('waiters', { name: 'Maria', nickname: 'Maria', pin: '5678', active: true });
+  const defaultPerms = {
+    can_send_to_kitchen: true,
+    can_close_order: true,
+    can_print_bill: true,
+    can_cancel_order: false,
+    can_apply_discount: false,
+    can_transfer_table: false,
+  };
+  create('waiters', { name: 'João', nickname: 'João', password: '1234', active: true, permissions: defaultPerms });
+  create('waiters', { name: 'Maria', nickname: 'Maria', password: '5678', active: true, permissions: defaultPerms });
 
   // Estoque (50 un de cada produto)
   readAll('products').forEach(p => {

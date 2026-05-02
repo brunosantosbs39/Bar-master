@@ -1,8 +1,10 @@
 name = "cardapio-emporiopires"
 main = "index.js"
 compatibility_date = "2024-01-01"
+workers_dev = true
+account_id = "48c1a1d481900fc46118a50b7ef35eb9"
 
 [[kv_namespaces]]
 binding = "TUNNEL_URL"
-id = "COLE_O_ID_AQUI"
-preview_id = "COLE_O_ID_AQUI"
+id = "8f13e25fe0cf4ffca1ebe5939907e623"
+preview_id = "8f13e25fe0cf4ffca1ebe5939907e623"
